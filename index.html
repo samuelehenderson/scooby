@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scooby's Meds</title>
+<meta name="description" content="A simple medication tracker for one dog.">
+<meta name="theme-color" content="#f2f5f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1412" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Meds">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23136F5F'/%3E%3Cg fill='%23fff'%3E%3Ccircle cx='11' cy='11' r='3'/%3E%3Ccircle cx='21' cy='11' r='3'/%3E%3Ccircle cx='7' cy='18' r='2.6'/%3E%3Ccircle cx='25' cy='18' r='2.6'/%3E%3Cpath d='M16 15c4 0 7 3.4 7 6.6 0 2.4-1.9 3.9-4.3 3.9-1.1 0-1.9-.4-2.7-.4s-1.6.4-2.7.4C10.9 25.5 9 24 9 21.6 9 18.4 12 15 16 15z'/%3E%3C/g%3E%3C/svg%3E">
+</head>
+<body>
+<!--APP-START-->
+<style>
+:root{
+  --bg:#f2f5f3; --surface:#ffffff; --surface-2:#e8eeeb; --line:#d6dfdb; --line-soft:#e6ecea;
+  --ink:#12201c; --ink-2:#4a5c56; --ink-3:#77877f;
+  --accent:#136f5f; --accent-ink:#0d4d42; --accent-soft:#dcece7; --on-accent:#ffffff;
+  --warn:#8f6100; --warn-soft:#f6ecd4;
+  --crit:#a63a26; --crit-soft:#f8e3dd;
+  --shadow:0 1px 2px rgba(18,32,28,.06), 0 8px 20px -12px rgba(18,32,28,.28);
+  --font-display:ui-rounded,"SF Pro Rounded","Hiragino Maru Gothic ProN","Segoe UI Variable Display",system-ui,sans-serif;
+  --font-body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-num:ui-monospace,"SF Mono","Cascadia Mono",Menlo,Consolas,monospace;
+  --r:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1412; --surface:#151f1c; --surface-2:#1c2724; --line:#26332f; --line-soft:#1f2b28;
+    --ink:#e9efec; --ink-2:#a6b7b1; --ink-3:#7b8b85;
+    --accent:#5fc0aa; --accent-ink:#8fd8c6; --accent-soft:#15302a; --on-accent:#0d1412;
+    --warn:#e2ad55; --warn-soft:#2f2611;
+    --crit:#f0907a; --crit-soft:#38201a;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 24px -14px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1412; --surface:#151f1c; --surface-2:#1c2724; --line:#26332f; --line-soft:#1f2b28;
+  --ink:#e9efec; --ink-2:#a6b7b1; --ink-3:#7b8b85;
+  --accent:#5fc0aa; --accent-ink:#8fd8c6; --accent-soft:#15302a; --on-accent:#0d1412;
+  --warn:#e2ad55; --warn-soft:#2f2611;
+  --crit:#f0907a; --crit-soft:#38201a;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 24px -14px rgba(0,0,0,.8);
+}
+:root[data-theme="light"]{
+  --bg:#f2f5f3; --surface:#ffffff; --surface-2:#e8eeeb; --line:#d6dfdb; --line-soft:#e6ecea;
+  --ink:#12201c; --ink-2:#4a5c56; --ink-3:#77877f;
+  --accent:#136f5f; --accent-ink:#0d4d42; --accent-soft:#dcece7; --on-accent:#ffffff;
+  --warn:#8f6100; --warn-soft:#f6ecd4;
+  --crit:#a63a26; --crit-soft:#f8e3dd;
+  --shadow:0 1px 2px rgba(18,32,28,.06), 0 8px 20px -12px rgba(18,32,28,.28);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--font-body); font-size:16px; line-height:1.45;
+  -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent;
+}
+.wrap{max-width:32rem; margin:0 auto; padding:0 14px calc(80px + env(safe-area-inset-bottom));}
+button{font:inherit; color:inherit; cursor:pointer; border:0; background:none}
+:focus-visible{outline:2.5px solid var(--accent); outline-offset:2px; border-radius:8px}
+h1,h2,h3{font-family:var(--font-display); font-weight:650; letter-spacing:-.015em; margin:0; text-wrap:balance}
+.num{font-family:var(--font-num); font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header{
+  position:sticky; top:0; z-index:20; background:var(--bg);
+  padding:calc(10px + env(safe-area-inset-top)) 14px 8px;
+  border-bottom:1px solid var(--line-soft);
+}
+.hdr-inner{max-width:32rem; margin:0 auto; display:flex; align-items:center; gap:10px}
+.dogname{font-family:var(--font-display); font-size:19px; font-weight:680; letter-spacing:-.02em; flex:1; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.icon-btn{width:38px; height:38px; border-radius:11px; display:grid; place-items:center; color:var(--ink-2); flex:none}
+.icon-btn:active{background:var(--surface-2)}
+.icon-btn svg{width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+
+.nextup{max-width:32rem; margin:6px auto 0; display:flex; align-items:baseline; gap:8px; font-size:13.5px; color:var(--ink-2)}
+.nextup b{font-family:var(--font-display); color:var(--ink); font-weight:640}
+.nextup.is-crit b{color:var(--crit)}
+.dot{width:7px; height:7px; border-radius:50%; background:var(--accent); flex:none; align-self:center}
+.is-warn .dot{background:var(--warn)} .is-crit .dot{background:var(--crit)}
+
+/* ---------- section headings ---------- */
+.sec{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:26px 2px 10px}
+.sec h2{font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3)}
+.link{font-size:13.5px; color:var(--accent); font-weight:560; padding:4px 2px}
+
+/* ---------- med card ---------- */
+.cards{display:flex; flex-direction:column; gap:12px; margin-top:14px}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:var(--shadow); overflow:hidden; position:relative;
+}
+.card::before{content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--accent)}
+.card.s-soon::before{background:var(--warn)}
+.card.s-late::before{background:var(--crit)}
+.card.s-idle::before{background:var(--line)}
+.card-top{display:flex; gap:12px; align-items:flex-start; padding:14px 12px 12px 15px}
+.card-id{flex:1; min-width:0}
+.med-name{font-family:var(--font-display); font-size:19px; font-weight:660; letter-spacing:-.02em; display:flex; align-items:baseline; gap:7px; flex-wrap:wrap}
+.med-sub{font-size:12.5px; color:var(--ink-3); font-weight:500}
+.med-dose{font-size:13.5px; color:var(--ink-2); margin-top:2px}
+.countdown{text-align:right; flex:none}
+.cd-time{font-family:var(--font-num); font-size:21px; font-weight:600; letter-spacing:-.02em; line-height:1.1; font-variant-numeric:tabular-nums}
+.cd-label{font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3); margin-top:3px; font-weight:600}
+.s-ok .cd-time{color:var(--ink)}
+.s-soon .cd-time{color:var(--warn)} .s-soon .cd-label{color:var(--warn)}
+.s-late .cd-time{color:var(--crit)} .s-late .cd-label{color:var(--crit)}
+.s-idle .cd-time{color:var(--ink-3); font-size:15px; font-family:var(--font-body)}
+
+.track{height:3px; background:var(--surface-2); margin:0 12px 0 15px; border-radius:2px; overflow:hidden}
+.track i{display:block; height:100%; background:var(--accent); border-radius:2px; transition:width .4s ease}
+.s-soon .track i{background:var(--warn)}
+.s-late .track i{background:var(--crit)}
+
+.card-note{font-size:12.5px; color:var(--ink-2); padding:10px 12px 0 15px; line-height:1.4}
+.stage{
+  display:inline-flex; align-items:center; gap:6px; margin:10px 12px 0 15px; padding:5px 9px;
+  background:var(--accent-soft); color:var(--accent-ink); border-radius:8px;
+  font-size:12px; font-weight:600; letter-spacing:.01em;
+}
+.card-act{display:flex; gap:8px; padding:12px; padding-left:15px; align-items:stretch}
+.give{
+  flex:1; background:var(--accent); color:var(--on-accent); border-radius:12px; padding:13px 12px;
+  font-family:var(--font-display); font-size:16px; font-weight:640; letter-spacing:-.01em;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:transform .12s ease, filter .12s ease;
+}
+.give:active{transform:scale(.975); filter:brightness(.94)}
+.give.late{background:var(--crit)}
+.more{width:48px; border-radius:12px; background:var(--surface-2); color:var(--ink-2); display:grid; place-items:center; flex:none}
+.more:active{filter:brightness(.94)}
+.more svg{width:20px; height:20px; fill:currentColor}
+.last{font-size:12px; color:var(--ink-3); padding:0 15px 13px}
+.card.done .card-act{display:none}
+
+/* ---------- log ---------- */
+.log{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden}
+.log-day{padding:9px 14px; background:var(--surface-2); font-size:11.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.row{display:flex; gap:11px; align-items:flex-start; padding:11px 14px; border-top:1px solid var(--line-soft)}
+.log-day + .row{border-top:0}
+.row-t{font-family:var(--font-num); font-size:12.5px; color:var(--ink-3); width:62px; flex:none; padding-top:2px; font-variant-numeric:tabular-nums}
+.row-b{flex:1; min-width:0; font-size:14.5px}
+.row-b em{font-style:normal; color:var(--ink-3); font-size:12.5px; display:block; margin-top:1px}
+.row-x{color:var(--ink-3); font-size:12.5px; padding:2px 6px; flex:none; border-radius:7px}
+.row.sym .row-b{color:var(--ink)}
+.pill{display:inline-block; padding:2px 8px; border-radius:999px; font-size:12.5px; font-weight:600; background:var(--surface-2); color:var(--ink-2)}
+.pill.bad{background:var(--crit-soft); color:var(--crit)}
+.pill.good{background:var(--accent-soft); color:var(--accent-ink)}
+.empty{padding:18px 15px; color:var(--ink-3); font-size:14px; text-align:center}
+
+/* ---------- symptom chips ---------- */
+.chips{display:flex; flex-wrap:wrap; gap:7px}
+.chip{
+  padding:8px 12px; border-radius:999px; border:1px solid var(--line); background:var(--surface);
+  font-size:14px; font-weight:550; color:var(--ink-2); transition:transform .1s ease;
+}
+.chip:active{transform:scale(.96)}
+.chip.bad{border-color:color-mix(in srgb, var(--crit) 35%, var(--line))}
+.chip.good{border-color:color-mix(in srgb, var(--accent) 35%, var(--line))}
+
+/* ---------- generic ---------- */
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px}
+label{display:block; font-size:12.5px; font-weight:640; letter-spacing:.02em; color:var(--ink-2); margin-bottom:5px}
+input[type=text], input[type=number], input[type=datetime-local], input[type=date], textarea, select{
+  width:100%; font:inherit; font-size:16px; color:var(--ink); background:var(--surface);
+  border:1px solid var(--line); border-radius:11px; padding:11px 12px;
+}
+textarea{resize:vertical; min-height:64px}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  padding:12px 16px; border-radius:12px; font-family:var(--font-display);
+  font-size:15.5px; font-weight:620; background:var(--surface-2); color:var(--ink);
+}
+.btn.primary{background:var(--accent); color:var(--on-accent)}
+.btn.danger{background:var(--crit-soft); color:var(--crit)}
+.btn.wide{width:100%}
+a.btn{text-decoration:none}
+.btn:active{filter:brightness(.94)}
+.stack{display:flex; flex-direction:column; gap:10px}
+.muted{color:var(--ink-3); font-size:12.5px; line-height:1.5}
+
+/* ---------- dialog ---------- */
+dialog{
+  border:0; padding:0; background:transparent; color:var(--ink);
+  width:min(32rem, 100%); max-width:100%; margin:auto auto 0; max-height:92dvh;
+}
+dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
+.sheet{
+  background:var(--surface); border-radius:20px 20px 0 0; border-top:1px solid var(--line);
+  padding:8px 16px calc(20px + env(safe-area-inset-bottom));
+  max-height:92dvh; overflow-y:auto; font-family:var(--font-body);
+}
+.grip{width:38px; height:4px; border-radius:2px; background:var(--line); margin:6px auto 12px}
+.sheet h3{font-size:18px; margin-bottom:4px}
+.sheet-hd{margin-bottom:14px}
+.sheet-list{display:flex; flex-direction:column; gap:2px; margin:0 -6px}
+.sheet-item{display:flex; align-items:center; gap:12px; padding:14px 6px; border-radius:12px; font-size:16px; text-align:left; width:100%}
+.sheet-item:active{background:var(--surface-2)}
+.sheet-item.danger{color:var(--crit)}
+.sheet-item svg{width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:none}
+@media (min-width:560px){
+  dialog{margin:auto}
+  .sheet{border-radius:18px; border:1px solid var(--line)}
+}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed; left:50%; transform:translateX(-50%) translateY(140%);
+  bottom:calc(16px + env(safe-area-inset-bottom)); z-index:60;
+  background:var(--ink); color:var(--bg); border-radius:14px;
+  padding:12px 14px; display:flex; align-items:center; gap:14px;
+  font-size:14.5px; width:min(30rem, calc(100% - 28px)); box-shadow:var(--shadow);
+  transition:transform .28s cubic-bezier(.2,.9,.3,1);
+}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast button{font-weight:700; color:var(--bg); text-decoration:underline; text-underline-offset:3px; flex:none}
+
+/* ---------- setup ---------- */
+.setup-med{border:1px solid var(--line); background:var(--surface); border-radius:var(--r); padding:13px 14px}
+.seg{display:flex; gap:6px; margin-top:9px}
+.seg button{flex:1; padding:9px 4px; border-radius:10px; background:var(--surface-2); font-size:13.5px; font-weight:600; color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--accent); color:var(--on-accent)}
+
+.hidden{display:none !important}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+</style>
+
+<header>
+  <div class="hdr-inner">
+    <h1 class="dogname" id="dogName">Scooby</h1>
+    <button class="icon-btn" id="btnRemind" aria-label="Reminders">
+      <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>
+    </button>
+    <button class="icon-btn" id="btnShare" aria-label="Share a summary">
+      <svg viewBox="0 0 24 24"><path d="M12 15V3m0 0L8 7m4-4 4 4"/><path d="M4 14v5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg>
+    </button>
+    <button class="icon-btn" id="btnSettings" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-3-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.1-3l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 3 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1.1z"/></svg>
+    </button>
+  </div>
+  <div class="nextup" id="nextUp"><span class="dot"></span><span>Loading…</span></div>
+</header>
+
+<main class="wrap">
+  <!-- first run -->
+  <section id="setup" class="hidden">
+    <div class="sec"><h2>Set up</h2></div>
+    <p class="muted" style="margin:0 0 14px">When was each medication last given? Tap one for each — you can change any of it later.</p>
+    <div class="stack" id="setupList"></div>
+    <button class="btn primary wide" id="setupGo" style="margin-top:16px">Start tracking</button>
+  </section>
+
+  <!-- main app -->
+  <section id="app" class="hidden">
+    <div class="cards" id="cards"></div>
+
+    <div class="sec"><h2>How he's doing</h2><button class="link" id="btnNote">Add a note</button></div>
+    <div class="panel">
+      <div class="chips" id="symChips"></div>
+    </div>
+
+    <div class="sec"><h2>History</h2><button class="link" id="btnAllLog">Show all</button></div>
+    <div class="log" id="log"></div>
+
+    <p class="muted" style="margin:18px 4px 0">
+      This tracks what was given and when. It isn't medical advice — follow your vet's instructions, and call them about anything new or worse.
+    </p>
+  </section>
+</main>
+
+<div id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastAct" type="button">Undo</button></div>
+
+<dialog id="sheet"><div class="sheet" id="sheetBody"></div></dialog>
+
+<script>
+(function(){
+"use strict";
+var KEY = "scooby.meds.v1";
+var HOUR = 3600000, MIN = 60000;
+var mem = null;
+
+/* ---------------- state ---------------- */
+function defaults(){
+  return {
+    v:1, dogName:"Scooby", setup:false, showAll:false, alerts:false,
+    meds:[
+      {id:"pepcid", name:"Pepcid", sub:"famotidine", dose:"1 tablet", type:"fixed", intervalH:12,
+       note:"Reduces stomach acid.", active:true},
+      {id:"pred", name:"Prednisone", sub:"steroid", dose:"1 tablet", type:"taper", active:true,
+       note:"Tapering dose — don't stop early without checking with your vet.",
+       stages:[{h:12, doses:14, label:"every 12 hours"},
+               {h:24, doses:7,  label:"once a day"},
+               {h:48, doses:4,  label:"every other day"}]},
+      {id:"cerenia", name:"Cerenia", sub:"maropitant", dose:"1 tablet", type:"fixed", intervalH:24,
+       note:"Anti-nausea.", active:true},
+      {id:"sucralfate", name:"Sucralfate", sub:"coats the stomach", dose:"1 tablet", type:"fixed", intervalH:24,
+       note:"Give 1 hour before food. Ask your vet about keeping it ~2 hours apart from the other meds.", active:true}
+    ],
+    doses:[], events:[]
+  };
+}
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(raw) return migrate(JSON.parse(raw));
+  }catch(e){}
+  return defaults();
+}
+function migrate(s){
+  var d = defaults();
+  if(!s || typeof s!=="object") return d;
+  s.meds = s.meds || d.meds; s.doses = s.doses || []; s.events = s.events || [];
+  if(!s.dogName) s.dogName = d.dogName;
+  return s;
+}
+function save(){
+  mem = S;
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
+}
+var S = load();
+
+/* ---------------- helpers ---------------- */
+function $(sel, root){ return (root||document).querySelector(sel); }
+function el(tag, cls, txt){ var n=document.createElement(tag); if(cls) n.className=cls; if(txt!=null) n.textContent=txt; return n; }
+function uid(){ return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4); }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+function fmtTime(t){
+  return new Date(t).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"});
+}
+function fmtDay(t){
+  var d = new Date(t), today = new Date(); today.setHours(0,0,0,0);
+  var day = new Date(d); day.setHours(0,0,0,0);
+  var diff = Math.round((today - day)/86400000);
+  if(diff === 0) return "Today";
+  if(diff === 1) return "Yesterday";
+  if(diff === -1) return "Tomorrow";
+  return d.toLocaleDateString([], {weekday:"long", month:"short", day:"numeric"});
+}
+function fmtWhen(t){
+  var d = fmtDay(t);
+  if(d === "Today") return fmtTime(t);
+  if(d === "Yesterday" || d === "Tomorrow") return d.toLowerCase() + " " + fmtTime(t);
+  return d + " " + fmtTime(t);
+}
+function fmtGap(ms){
+  var m = Math.round(Math.abs(ms)/MIN);
+  var h = Math.floor(m/60); m = m % 60;
+  var d = Math.floor(h/24);
+  if(d >= 1) return d + "d " + (h % 24) + "h";
+  if(h >= 1) return h + "h " + (m<10?"0":"") + m + "m";
+  return m + "m";
+}
+function localInput(t){
+  var d = new Date(t - d0());
+  return d.toISOString().slice(0,16);
+}
+function d0(){ return new Date().getTimezoneOffset()*MIN; }
+
+/* ---------------- schedule ---------------- */
+function dosesOf(medId){
+  return S.doses.filter(function(x){ return x.medId === medId; }).sort(function(a,b){ return a.t - b.t; });
+}
+function stageFor(med, index){
+  var cum = 0;
+  for(var i=0;i<med.stages.length;i++){
+    cum += med.stages[i].doses;
+    if(index < cum) return {i:i, stage:med.stages[i], inStage:index - (cum - med.stages[i].doses), cumBefore:cum - med.stages[i].doses};
+  }
+  return null;
+}
+function totalDoses(med){
+  return med.stages.reduce(function(a,s){ return a + s.doses; }, 0);
+}
+// returns {last, due, intervalH, complete, stageInfo}
+function schedule(med){
+  var ds = dosesOf(med.id);
+  var last = ds.length ? ds[ds.length-1].t : null;
+  var out = {count:ds.length, last:last, due:null, intervalH:null, complete:false, stage:null};
+  if(med.type === "taper"){
+    var next = stageFor(med, ds.length);
+    out.stage = stageFor(med, Math.max(0, ds.length - (ds.length ? 1 : 0)));
+    if(!next){ out.complete = true; return out; }
+    out.next = next;
+    out.intervalH = next.stage.h;
+  } else {
+    out.intervalH = med.intervalH;
+  }
+  if(last != null) out.due = last + out.intervalH*HOUR;
+  return out;
+}
+function statusOf(sc){
+  if(sc.complete) return "done";
+  if(sc.due == null) return "idle";
+  var left = sc.due - Date.now();
+  if(left <= 0) return "late";
+  if(left <= 60*MIN) return "soon";
+  return "ok";
+}
+
+/* ---------------- actions ---------------- */
+var lastUndo = null;
+function giveDose(medId, when, note){
+  var d = {id:uid(), medId:medId, t:when || Date.now()};
+  if(note) d.note = note;
+  S.doses.push(d); save();
+  lastUndo = {type:"dose", id:d.id};
+  var med = medById(medId);
+  toast(med.name + " logged " + fmtTime(d.t), "Undo", undoLast);
+  render();
+}
+function undoLast(){
+  if(!lastUndo) return;
+  if(lastUndo.type === "dose") S.doses = S.doses.filter(function(d){ return d.id !== lastUndo.id; });
+  else S.events = S.events.filter(function(e){ return e.id !== lastUndo.id; });
+  lastUndo = null; save(); render(); toast("Removed");
+}
+function addEvent(text, tone){
+  var e = {id:uid(), t:Date.now(), text:text, tone:tone||""};
+  S.events.push(e); save();
+  lastUndo = {type:"event", id:e.id};
+  toast("Noted: " + text, "Undo", undoLast);
+  render();
+}
+function medById(id){
+  for(var i=0;i<S.meds.length;i++) if(S.meds[i].id === id) return S.meds[i];
+  return null;
+}
+
+/* ---------------- toast ---------------- */
+var toastTimer = null;
+function toast(msg, actLabel, actFn){
+  var t = $("#toast"), a = $("#toastAct");
+  $("#toastMsg").textContent = msg;
+  if(actLabel){ a.textContent = actLabel; a.classList.remove("hidden"); a.onclick = function(){ hideToast(); actFn(); }; }
+  else a.classList.add("hidden");
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(hideToast, actLabel ? 7000 : 2600);
+}
+function hideToast(){ $("#toast").classList.remove("show"); }
+
+/* ---------------- sheet ---------------- */
+function openSheet(build){
+  var dlg = $("#sheet"), body = $("#sheetBody");
+  body.innerHTML = "";
+  build(body, function(){ dlg.close(); });
+  if(!dlg.open) dlg.showModal();
+}
+$("#sheet").addEventListener("click", function(e){ if(e.target === this) this.close(); });
+
+function sheetHead(body, title, sub){
+  body.appendChild(el("div","grip"));
+  var hd = el("div","sheet-hd");
+  hd.appendChild(el("h3", null, title));
+  if(sub) hd.appendChild(el("p","muted", sub));
+  body.appendChild(hd);
+  return hd;
+}
+function sheetItem(body, label, iconPath, fn, cls){
+  var b = el("button", "sheet-item" + (cls ? " " + cls : ""));
+  b.type = "button";
+  b.innerHTML = '<svg viewBox="0 0 24 24">' + iconPath + '</svg><span>' + esc(label) + '</span>';
+  b.onclick = fn;
+  body.appendChild(b);
+  return b;
+}
+var ICON = {
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  undo:  '<path d="M3 8h11a6 6 0 1 1 0 12H8"/><path d="M3 8l4-4M3 8l4 4"/>',
+  edit:  '<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17v3z"/>',
+  skip:  '<path d="M5 5v14M19 5v14M8 12h8"/>',
+  trash: '<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>',
+  plus:  '<path d="M12 5v14M5 12h14"/>'
+};
+
+/* ---------------- render ---------------- */
+function render(){
+  $("#dogName").textContent = S.dogName;
+  document.title = S.dogName + "'s Meds";
+  if(!S.setup){ $("#setup").classList.remove("hidden"); $("#app").classList.add("hidden"); renderSetup(); tick(); return; }
+  $("#setup").classList.add("hidden"); $("#app").classList.remove("hidden");
+  renderCards();
+  renderChips();
+  renderLog();
+  tick();
+}
+
+function renderCards(){
+  var wrap = $("#cards");
+  wrap.innerHTML = "";
+  var list = S.meds.filter(function(m){ return m.active !== false; }).map(function(m){
+    return {med:m, sc:schedule(m)};
+  });
+  list.sort(function(a,b){
+    var sa = statusOf(a.sc), sb = statusOf(b.sc);
+    var rank = {late:0, soon:1, ok:2, idle:3, done:4};
+    if(rank[sa] !== rank[sb]) return rank[sa] - rank[sb];
+    if(a.sc.due && b.sc.due) return a.sc.due - b.sc.due;
+    return 0;
+  });
+  list.forEach(function(item){ wrap.appendChild(medCard(item.med, item.sc)); });
+
+  var add = el("button","btn wide","+ Add a medication");
+  add.type = "button"; add.style.marginTop = "2px";
+  add.onclick = function(){ editMed(null); };
+  wrap.appendChild(add);
+}
+
+function medCard(med, sc){
+  var st = statusOf(sc);
+  var card = el("div", "card s-" + st + (st === "done" ? " done" : ""));
+  card.dataset.med = med.id;
+
+  var top = el("div","card-top");
+  var idc = el("div","card-id");
+  var nm = el("div","med-name");
+  nm.appendChild(el("span", null, med.name));
+  if(med.sub) nm.appendChild(el("span","med-sub", med.sub));
+  idc.appendChild(nm);
+  var doseLine = med.dose || "1 tablet";
+  if(med.type === "taper" && sc.next) doseLine += " · " + sc.next.stage.label;
+  else if(med.intervalH) doseLine += " · every " + med.intervalH + " hours";
+  idc.appendChild(el("div","med-dose", doseLine));
+  top.appendChild(idc);
+
+  var cd = el("div","countdown");
+  var time = el("div","cd-time"), lab = el("div","cd-label");
+  if(st === "done"){ time.textContent = "Finished"; lab.textContent = "course complete"; }
+  else if(st === "idle"){ time.textContent = "Not started"; lab.textContent = "tap to log"; }
+  else { time.className = "cd-time num"; time.dataset.due = sc.due; lab.textContent = sc.due - Date.now() <= 0 ? "overdue" : "until next"; }
+  cd.appendChild(time); cd.appendChild(lab);
+  top.appendChild(cd);
+  card.appendChild(top);
+
+  if(sc.due != null && st !== "done"){
+    var track = el("div","track"), bar = el("i");
+    var span = sc.intervalH*HOUR, elapsed = Date.now() - sc.last;
+    bar.style.width = Math.max(0, Math.min(100, elapsed/span*100)) + "%";
+    track.appendChild(bar); card.appendChild(track);
+  }
+
+  if(med.type === "taper"){
+    var total = totalDoses(med), tag;
+    if(sc.complete) tag = el("div","stage","All " + total + " doses given");
+    else {
+      var n = sc.next;
+      tag = el("div","stage", "Stage " + (n.i+1) + " of " + med.stages.length +
+        " · next is dose " + (n.inStage+1) + " of " + n.stage.doses + " (" + (sc.count) + " of " + total + " given)");
+    }
+    card.appendChild(tag);
+  }
+
+  if(med.note) card.appendChild(el("div","card-note", med.note));
+
+  if(st !== "done"){
+    var act = el("div","card-act");
+    var give = el("button","give" + (st === "late" ? " late" : ""));
+    give.type = "button";
+    give.textContent = st === "idle" ? "Log first dose" : "Give now";
+    give.onclick = function(){ giveDose(med.id); };
+    act.appendChild(give);
+    var more = el("button","more");
+    more.type = "button"; more.setAttribute("aria-label", "More options for " + med.name);
+    more.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>';
+    more.onclick = function(){ medMenu(med); };
+    act.appendChild(more);
+    card.appendChild(act);
+  } else {
+    var act2 = el("div","card-act");
+    var b2 = el("button","btn wide","Options");
+    b2.type="button"; b2.onclick = function(){ medMenu(med); };
+    act2.appendChild(b2); card.appendChild(act2);
+  }
+
+  if(sc.last != null){
+    card.appendChild(el("div","last","Last given " + fmtWhen(sc.last) +
+      " · " + fmtGap(Date.now() - sc.last) + " ago"));
+  }
+  return card;
+}
+
+function medMenu(med){
+  openSheet(function(body, close){
+    sheetHead(body, med.name, med.dose + (med.sub ? " · " + med.sub : ""));
+    var list = el("div","sheet-list");
+    sheetItem(list, "Log a dose at another time", ICON.clock, function(){ close(); logAtTime(med); });
+    var ds = dosesOf(med.id);
+    if(ds.length){
+      sheetItem(list, "Undo last dose (" + fmtTime(ds[ds.length-1].t) + ")", ICON.undo, function(){
+        var id = ds[ds.length-1].id;
+        S.doses = S.doses.filter(function(d){ return d.id !== id; });
+        save(); render(); close(); toast("Dose removed");
+      });
+    }
+    sheetItem(list, "Edit this medication", ICON.edit, function(){ close(); editMed(med); });
+    sheetItem(list, "Remove from the list", ICON.trash, function(){
+      close();
+      confirmSheet("Remove " + med.name + "?", "Doses already logged stay in the history.", "Remove", function(){
+        med.active = false; save(); render(); toast(med.name + " removed");
+      });
+    }, "danger");
+    body.appendChild(list);
+  });
+}
+
+function logAtTime(med){
+  openSheet(function(body, close){
+    sheetHead(body, "When was " + med.name + " given?", "Pick a time in the past.");
+    var quick = el("div","chips");
+    [[15,"15 min ago"],[30,"30 min ago"],[60,"1 hour ago"],[120,"2 hours ago"],[240,"4 hours ago"],[480,"8 hours ago"]]
+    .forEach(function(q){
+      var b = el("button","chip", q[1]); b.type="button";
+      b.onclick = function(){ close(); giveDose(med.id, Date.now() - q[0]*MIN); };
+      quick.appendChild(b);
+    });
+    body.appendChild(quick);
+    var f = el("div","stack"); f.style.marginTop = "14px";
+    var lb = el("label", null, "Or choose exactly"); lb.htmlFor = "exactT";
+    var inp = el("input"); inp.type = "datetime-local"; inp.id = "exactT"; inp.value = localInput(Date.now());
+    var go = el("button","btn primary wide","Save dose"); go.type = "button";
+    go.onclick = function(){
+      if(!inp.value) return;
+      var t = new Date(inp.value).getTime();
+      if(isNaN(t)) return;
+      close(); giveDose(med.id, t);
+    };
+    f.appendChild(lb); f.appendChild(inp); f.appendChild(go);
+    body.appendChild(f);
+  });
+}
+
+function editMed(med){
+  var isNew = !med;
+  openSheet(function(body, close){
+    sheetHead(body, isNew ? "Add a medication" : "Edit " + med.name);
+    var f = el("div","stack");
+    function field(labelText, node){
+      var w = el("div"); var l = el("label", null, labelText); w.appendChild(l); w.appendChild(node); f.appendChild(w); return node;
+    }
+    var name = el("input"); name.type="text"; name.value = med ? med.name : ""; name.placeholder = "Medication name";
+    field("Name", name);
+    var dose = el("input"); dose.type="text"; dose.value = med ? (med.dose||"") : "1 tablet"; dose.placeholder="1 tablet";
+    field("Dose", dose);
+    var isTaper = med && med.type === "taper";
+    var hrs;
+    if(!isTaper){
+      hrs = el("input"); hrs.type="number"; hrs.min="1"; hrs.step="1";
+      hrs.value = med ? (med.intervalH||12) : 12;
+      field("Give every (hours)", hrs);
+    } else {
+      var box = el("div","panel");
+      box.style.background = "var(--surface-2)"; box.style.border = "0";
+      box.appendChild(el("div","muted","This one steps down over time:"));
+      med.stages.forEach(function(s, i){
+        box.appendChild(el("div", null, "Stage " + (i+1) + " — " + s.doses + " doses, " + s.label));
+      });
+      field("Schedule", box);
+    }
+    var note = el("textarea"); note.value = med ? (med.note||"") : ""; note.placeholder = "Anything to remember — give with food, etc.";
+    field("Note", note);
+
+    var go = el("button","btn primary wide", isNew ? "Add medication" : "Save changes"); go.type="button";
+    go.onclick = function(){
+      var nm = name.value.trim();
+      if(!nm){ name.focus(); return; }
+      if(isNew){
+        S.meds.push({id:uid(), name:nm, dose:dose.value.trim()||"1 tablet", type:"fixed",
+          intervalH: Math.max(1, parseInt(hrs.value,10)||12), note:note.value.trim(), active:true});
+      } else {
+        med.name = nm; med.dose = dose.value.trim(); med.note = note.value.trim(); med.active = true;
+        if(!isTaper) med.intervalH = Math.max(1, parseInt(hrs.value,10)||med.intervalH);
+      }
+      save(); render(); close(); toast(isNew ? nm + " added" : "Saved");
+    };
+    f.appendChild(go);
+    body.appendChild(f);
+  });
+}
+
+function confirmSheet(title, sub, actLabel, fn){
+  openSheet(function(body, close){
+    sheetHead(body, title, sub);
+    var s = el("div","stack");
+    var a = el("button","btn danger wide", actLabel); a.type="button";
+    a.onclick = function(){ close(); fn(); };
+    var c = el("button","btn wide","Cancel"); c.type="button"; c.onclick = close;
+    s.appendChild(a); s.appendChild(c); body.appendChild(s);
+  });
+}
+
+/* ---------------- symptoms ---------------- */
+var SYMPTOMS = [
+  {t:"Vomited", tone:"bad"},
+  {t:"Blood in vomit", tone:"bad"},
+  {t:"Black / tarry stool", tone:"bad"},
+  {t:"Diarrhea", tone:"bad"},
+  {t:"Wouldn't eat", tone:"bad"},
+  {t:"Ate a meal", tone:"good"},
+  {t:"Drank water", tone:"good"},
+  {t:"Low energy", tone:"bad"},
+  {t:"Bright and himself", tone:"good"},
+  {t:"Peed / pooped", tone:""}
+];
+function renderChips(){
+  var w = $("#symChips"); w.innerHTML = "";
+  SYMPTOMS.forEach(function(s){
+    var b = el("button","chip" + (s.tone ? " " + s.tone : ""), s.t);
+    b.type = "button";
+    b.onclick = function(){ addEvent(s.t, s.tone); };
+    w.appendChild(b);
+  });
+}
+function noteSheet(){
+  openSheet(function(body, close){
+    sheetHead(body, "Add a note", "Anything you'd want to tell the vet.");
+    var f = el("div","stack");
+    var ta = el("textarea"); ta.placeholder = "Threw up around 6, small clot. Ate half his dinner.";
+    var go = el("button","btn primary wide","Save note"); go.type="button";
+    go.onclick = function(){ var v = ta.value.trim(); if(!v) return; close(); addEvent(v, ""); };
+    f.appendChild(ta); f.appendChild(go); body.appendChild(f);
+    setTimeout(function(){ ta.focus(); }, 60);
+  });
+}
+
+/* ---------------- log ---------------- */
+function timeline(){
+  var rows = [];
+  S.doses.forEach(function(d){
+    var m = medById(d.medId);
+    rows.push({t:d.t, kind:"dose", id:d.id, title:(m ? m.name : "Medication") + " given", sub:m && m.dose ? m.dose : "", tone:""});
+  });
+  S.events.forEach(function(e){
+    rows.push({t:e.t, kind:"event", id:e.id, title:e.text, sub:"", tone:e.tone});
+  });
+  rows.sort(function(a,b){ return b.t - a.t; });
+  return rows;
+}
+function renderLog(){
+  var w = $("#log"); w.innerHTML = "";
+  var rows = timeline();
+  if(!rows.length){ w.appendChild(el("div","empty","Nothing logged yet.")); return; }
+  var limit = S.showAll ? rows.length : 14;
+  var lastDay = null;
+  rows.slice(0, limit).forEach(function(r){
+    var day = fmtDay(r.t);
+    if(day !== lastDay){ w.appendChild(el("div","log-day", day)); lastDay = day; }
+    var row = el("div","row" + (r.kind === "event" ? " sym" : ""));
+    row.appendChild(el("div","row-t num", fmtTime(r.t)));
+    var b = el("div","row-b");
+    if(r.kind === "event"){
+      var p = el("span","pill" + (r.tone ? " " + r.tone : ""), r.title);
+      b.appendChild(p);
+    } else {
+      b.appendChild(el("span", null, r.title));
+      if(r.sub) b.appendChild(el("em", null, r.sub));
+    }
+    row.appendChild(b);
+    var x = el("button","row-x","Delete");
+    x.type = "button"; x.setAttribute("aria-label","Delete this entry");
+    x.onclick = function(){
+      confirmSheet("Delete this entry?", fmtTime(r.t) + " · " + r.title, "Delete", function(){
+        if(r.kind === "dose") S.doses = S.doses.filter(function(d){ return d.id !== r.id; });
+        else S.events = S.events.filter(function(e){ return e.id !== r.id; });
+        save(); render(); toast("Deleted");
+      });
+    };
+    row.appendChild(x);
+    w.appendChild(row);
+  });
+  $("#btnAllLog").textContent = S.showAll ? "Show less" : "Show all";
+  $("#btnAllLog").classList.toggle("hidden", rows.length <= 14);
+}
+
+/* ---------------- countdown tick ---------------- */
+function tick(){
+  var now = Date.now();
+  var nodes = document.querySelectorAll(".cd-time[data-due]");
+  for(var i=0;i<nodes.length;i++){
+    var due = +nodes[i].dataset.due, left = due - now;
+    nodes[i].textContent = fmtGap(left);
+    var card = nodes[i].closest(".card");
+    var want = left <= 0 ? "s-late" : (left <= 60*MIN ? "s-soon" : "s-ok");
+    if(card && !card.classList.contains(want)){
+      card.classList.remove("s-ok","s-soon","s-late");
+      card.classList.add(want);
+      var lab = card.querySelector(".cd-label");
+      if(lab) lab.textContent = left <= 0 ? "overdue" : "until next";
+      var g = card.querySelector(".give");
+      if(g){ g.classList.toggle("late", left <= 0); }
+    }
+    var bar = card && card.querySelector(".track i");
+    if(bar){
+      var med = medById(card.dataset.med), sc = med ? schedule(med) : null;
+      if(sc && sc.last != null && sc.intervalH){
+        bar.style.width = Math.max(0, Math.min(100, (now - sc.last)/(sc.intervalH*HOUR)*100)) + "%";
+      }
+    }
+  }
+  renderNextUp();
+  checkAlerts();
+}
+function renderNextUp(){
+  var box = $("#nextUp");
+  box.className = "nextup";
+  if(!S.setup){ box.innerHTML = '<span class="dot"></span><span>Let\'s get set up.</span>'; return; }
+  var items = S.meds.filter(function(m){ return m.active !== false; })
+    .map(function(m){ return {m:m, sc:schedule(m)}; })
+    .filter(function(x){ return x.sc.due != null && !x.sc.complete; });
+  var lateOnes = items.filter(function(x){ return x.sc.due <= Date.now(); });
+  var txt, cls = "";
+  if(lateOnes.length > 1){
+    cls = "is-crit";
+    txt = "<b>" + lateOnes.length + " meds are due now</b>";
+  } else if(lateOnes.length === 1){
+    cls = "is-crit";
+    txt = "<b>" + esc(lateOnes[0].m.name) + " is due</b> · " + fmtGap(Date.now() - lateOnes[0].sc.due) + " ago";
+  } else if(items.length){
+    items.sort(function(a,b){ return a.sc.due - b.sc.due; });
+    var n = items[0], left = n.sc.due - Date.now();
+    cls = left <= 60*MIN ? "is-warn" : "";
+    txt = "Next: <b>" + esc(n.m.name) + "</b> in " + fmtGap(left) + " · " + fmtTime(n.sc.due);
+  } else {
+    txt = "Nothing scheduled yet.";
+  }
+  box.className = "nextup " + cls;
+  box.innerHTML = '<span class="dot"></span><span>' + txt + "</span>";
+}
+setInterval(tick, 15000);
+
+/* ---------------- reminders ---------------- */
+var notified = {};
+function alertsOn(){
+  return typeof Notification !== "undefined" && Notification.permission === "granted" && S.alerts;
+}
+function checkAlerts(){
+  if(!alertsOn()) return;
+  var now = Date.now();
+  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+    var sc = schedule(m);
+    if(sc.complete || sc.due == null) return;
+    var key = m.id + ":" + sc.due;
+    if(sc.due > now || notified[key]) return;
+    notified[key] = 1;
+    fire(m.name + " is due", (m.dose || "1 tablet") + " for " + S.dogName);
+  });
+}
+function fire(title, body){
+  var opts = {body:body, tag:"med", icon:"icon-192.png", badge:"icon-192.png", requireInteraction:true};
+  try{
+    if(navigator.serviceWorker && navigator.serviceWorker.ready){
+      navigator.serviceWorker.ready.then(function(reg){ reg.showNotification(title, opts); })
+        .catch(function(){ new Notification(title, opts); });
+    } else new Notification(title, opts);
+  }catch(e){}
+}
+function askAlerts(then){
+  if(typeof Notification === "undefined"){ toast("This browser can't show alerts"); return; }
+  Notification.requestPermission().then(function(p){
+    S.alerts = (p === "granted"); save();
+    toast(S.alerts ? "Alerts on" : "Alerts were blocked — check your browser settings");
+    if(then) then();
+  });
+}
+
+function pad(n){ return (n<10?"0":"") + n; }
+function icsStamp(t){
+  var d = new Date(t);
+  return d.getUTCFullYear() + pad(d.getUTCMonth()+1) + pad(d.getUTCDate()) + "T" +
+         pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + "00Z";
+}
+function buildIcs(){
+  var lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//" + S.dogName + " meds//EN","CALSCALE:GREGORIAN"];
+  var any = false;
+  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+    var sc = schedule(m);
+    if(sc.complete || sc.due == null) return;
+    any = true;
+    var when = Math.max(sc.due, Date.now() + 60000);
+    lines.push("BEGIN:VEVENT",
+      "UID:" + m.id + "-" + when + "@meds",
+      "DTSTAMP:" + icsStamp(Date.now()),
+      "DTSTART:" + icsStamp(when),
+      "DURATION:PT5M",
+      "SUMMARY:" + S.dogName + " — " + m.name,
+      "DESCRIPTION:" + (m.dose || "1 tablet") + (m.note ? ". " + m.note.replace(/[\n,;]/g," ") : ""),
+      "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:" + m.name + " is due","TRIGGER:PT0M","END:VALARM",
+      "END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  return any ? lines.join("\r\n") : null;
+}
+function remindersSheet(){
+  openSheet(function(body, close){
+    sheetHead(body, "Reminders", "So a dose doesn't slip by.");
+    var f = el("div","stack");
+
+    var supported = typeof Notification !== "undefined";
+    var state = supported ? Notification.permission : "unsupported";
+    var b1 = el("button","btn wide"); b1.type = "button";
+    b1.textContent = alertsOn() ? "Alerts are on — turn off" : "Turn on alerts in this app";
+    if(alertsOn()) b1.classList.add("primary");
+    b1.onclick = function(){
+      if(alertsOn()){ S.alerts = false; save(); close(); toast("Alerts off"); }
+      else if(state === "granted"){ S.alerts = true; save(); close(); toast("Alerts on"); }
+      else askAlerts(close);
+    };
+    f.appendChild(b1);
+    f.appendChild(el("p","muted", state === "denied"
+      ? "Alerts are blocked for this page — you'd need to allow notifications in your browser settings."
+      : "These pop up when a dose comes due, as long as this app has been opened and is still running in the background. Add it to your home screen first so it sticks around."));
+
+    var ics = buildIcs();
+    var b2 = el("a","btn primary wide"); b2.textContent = "Add the next doses to my calendar";
+    if(ics){
+      b2.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
+      b2.setAttribute("download", "next-doses.ics");
+    } else {
+      b2.classList.add("hidden");
+    }
+    f.appendChild(b2);
+    f.appendChild(el("p","muted","This makes one calendar event with an alarm for each medication's next dose — the most reliable way to get a real alert. Do it again after you've given a round."));
+    body.appendChild(f);
+  });
+}
+
+/* ---------------- setup ---------------- */
+var setupPick = {};
+function renderSetup(){
+  var w = $("#setupList"); w.innerHTML = "";
+  S.meds.forEach(function(m){
+    if(m.active === false) return;
+    var box = el("div","setup-med");
+    var nm = el("div","med-name");
+    nm.appendChild(el("span", null, m.name));
+    if(m.sub) nm.appendChild(el("span","med-sub", m.sub));
+    box.appendChild(nm);
+    var sched = m.type === "taper" ? (m.dose + " · " + m.stages[0].label + " to start")
+                                   : (m.dose + " · every " + m.intervalH + " hours");
+    box.appendChild(el("div","med-dose", sched));
+    var seg = el("div","seg");
+    [["now","Just now"],["none","Not yet"],["pick","Earlier…"]].forEach(function(opt){
+      var b = el("button", null, opt[1]); b.type = "button";
+      b.setAttribute("aria-pressed", setupPick[m.id] && setupPick[m.id].k === opt[0] ? "true" : "false");
+      b.onclick = function(){
+        if(opt[0] === "pick"){
+          setupPick[m.id] = {k:"pick", t: (setupPick[m.id] && setupPick[m.id].t) || Date.now()};
+        } else {
+          setupPick[m.id] = {k:opt[0]};
+        }
+        renderSetup();
+      };
+      seg.appendChild(b);
+    });
+    box.appendChild(seg);
+    if(setupPick[m.id] && setupPick[m.id].k === "pick"){
+      var inp = el("input"); inp.type = "datetime-local"; inp.style.marginTop = "9px";
+      inp.value = localInput(setupPick[m.id].t);
+      inp.onchange = function(){
+        var t = new Date(inp.value).getTime();
+        if(!isNaN(t)) setupPick[m.id].t = t;
+      };
+      box.appendChild(inp);
+    }
+    w.appendChild(box);
+  });
+}
+$("#setupGo").onclick = function(){
+  var now = Date.now();
+  S.meds.forEach(function(m){
+    var p = setupPick[m.id];
+    if(!p || p.k === "none") return;
+    S.doses.push({id:uid(), medId:m.id, t: p.k === "now" ? now : p.t});
+  });
+  S.setup = true; save(); render();
+  window.scrollTo(0,0);
+};
+
+/* ---------------- settings ---------------- */
+function settingsSheet(){
+  openSheet(function(body, close){
+    sheetHead(body, "Settings");
+    var f = el("div","stack");
+    var w1 = el("div");
+    w1.appendChild(el("label", null, "Dog's name"));
+    var nm = el("input"); nm.type = "text"; nm.value = S.dogName;
+    nm.onchange = function(){ S.dogName = nm.value.trim() || "My dog"; save(); render(); };
+    w1.appendChild(nm); f.appendChild(w1);
+
+    var hidden = S.meds.filter(function(m){ return m.active === false; });
+    if(hidden.length){
+      var hw = el("div");
+      hw.appendChild(el("label", null, "Removed medications"));
+      hidden.forEach(function(m){
+        var b = el("button","btn wide", "Bring back " + m.name); b.type="button"; b.style.marginBottom="6px";
+        b.onclick = function(){ m.active = true; save(); render(); close(); toast(m.name + " restored"); };
+        hw.appendChild(b);
+      });
+      f.appendChild(hw);
+    }
+
+    var rem = el("button","btn wide","Reminders and alerts"); rem.type="button";
+    rem.onclick = function(){ close(); remindersSheet(); };
+    f.appendChild(rem);
+
+    var exp = el("button","btn wide","Back up / copy all data"); exp.type="button";
+    exp.onclick = function(){ close(); backupSheet(); };
+    f.appendChild(exp);
+
+    var reset = el("button","btn danger wide","Erase everything and start over"); reset.type="button";
+    reset.onclick = function(){
+      close();
+      confirmSheet("Erase all data?", "Every logged dose and note will be gone. This can't be undone.", "Erase everything", function(){
+        S = defaults(); setupPick = {}; save(); render();
+      });
+    };
+    f.appendChild(reset);
+
+    f.appendChild(el("p","muted",
+      "Everything is stored on this phone only — nothing is sent anywhere. If two people are giving meds, each phone keeps its own record, so use Share to send the log back and forth. Add this page to your home screen to keep it one tap away."));
+    body.appendChild(f);
+  });
+}
+
+function summaryText(){
+  var lines = [S.dogName + " — medication log", "As of " + new Date().toLocaleString(), ""];
+  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+    var sc = schedule(m), st = statusOf(sc);
+    var s = "• " + m.name + " (" + (m.dose||"1 tablet") + "): ";
+    if(st === "done") s += "course finished";
+    else if(sc.last == null) s += "not started";
+    else s += "last " + fmtWhen(sc.last) + ", next " + fmtWhen(sc.due) +
+      (st === "late" ? " — DUE NOW" : "");
+    if(m.type === "taper" && sc.next) s += " — stage " + (sc.next.i+1) + ", " + sc.count + " of " + totalDoses(m) + " given";
+    lines.push(s);
+  });
+  lines.push("", "Recent history:");
+  var cut = Date.now() - 3*24*HOUR, lastDay = null;
+  timeline().filter(function(r){ return r.t >= cut; }).reverse().forEach(function(r){
+    var d = fmtDay(r.t);
+    if(d !== lastDay){ lines.push("", d + ":"); lastDay = d; }
+    lines.push("  " + fmtTime(r.t) + " — " + r.title);
+  });
+  return lines.join("\n");
+}
+function shareSheet(){
+  var text = summaryText();
+  if(navigator.share){
+    navigator.share({title: S.dogName + "'s medication log", text: text}).catch(function(){});
+    return;
+  }
+  openSheet(function(body, close){
+    sheetHead(body, "Share summary", "Copy this and send it to whoever needs it.");
+    var ta = el("textarea"); ta.value = text; ta.style.minHeight = "220px"; ta.readOnly = true;
+    var b = el("button","btn primary wide","Copy to clipboard"); b.type="button";
+    b.onclick = function(){
+      copy(text); close(); toast("Copied");
+    };
+    var f = el("div","stack"); f.appendChild(ta); f.appendChild(b); body.appendChild(f);
+  });
+}
+function backupSheet(){
+  openSheet(function(body, close){
+    sheetHead(body, "Backup", "Copy this text somewhere safe. Paste it back here on another phone to restore.");
+    var f = el("div","stack");
+    var ta = el("textarea"); ta.value = JSON.stringify(S); ta.style.minHeight = "150px"; ta.spellcheck = false;
+    var b = el("button","btn primary wide","Copy backup"); b.type="button";
+    b.onclick = function(){ copy(ta.value); toast("Copied"); };
+    var r = el("button","btn wide","Restore from the text above"); r.type="button";
+    r.onclick = function(){
+      try{
+        var parsed = JSON.parse(ta.value);
+        if(!parsed || !parsed.meds) throw new Error("bad");
+        S = migrate(parsed); S.setup = true; save(); render(); close(); toast("Restored");
+      }catch(e){ toast("That text isn't a valid backup"); }
+    };
+    f.appendChild(ta); f.appendChild(b); f.appendChild(r); body.appendChild(f);
+  });
+}
+function copy(text){
+  if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).catch(fallback); }
+  else fallback();
+  function fallback(){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); }catch(e){}
+    document.body.removeChild(ta);
+  }
+}
+
+/* ---------------- wiring ---------------- */
+$("#btnSettings").onclick = settingsSheet;
+$("#btnShare").onclick = shareSheet;
+$("#btnRemind").onclick = remindersSheet;
+$("#btnNote").onclick = noteSheet;
+$("#btnAllLog").onclick = function(){ S.showAll = !S.showAll; save(); renderLog(); };
+$("#dogName").onclick = settingsSheet;
+document.addEventListener("visibilitychange", function(){ if(!document.hidden) tick(); });
+
+render();
+
+if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+})();
+</script>
+<!--APP-END-->
+</body>
+</html>
