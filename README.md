@@ -21,17 +21,32 @@ and shows which stage it's on and how many tablets are left in the course.
 Any of these can be edited, removed, or added to from the app — the four above
 are just the starting point.
 
+## Two views
+
+**Doses** is the working screen: what's due, how long until the next one, and
+one big button per medication. A strip across the top shows what's already gone
+in today.
+
+**Calendar** is the whole picture. Each day carries a dot per dose — filled for
+given, hollow for due, amber for missed, clay for a symptom logged that day.
+Tap any day to see it in detail; tap a future day to see exactly what's coming
+and when, prednisone step-downs included.
+
 ## Using it
 
 - **Give now** — logs the dose at the current time.
 - **⋯** — log a dose at an earlier time, undo the last dose, edit the schedule.
 - **How he's doing** — one tap to log vomiting, blood, black stool, whether he
   ate, energy level. Free-text notes too. This is the part worth showing the vet.
-- **Share** (↑ in the header) — builds a plain-text summary of where every
-  medication stands plus the last three days of history, ready to text or email.
-- **Bell** — turn on in-app alerts, or drop the next dose of each medication
-  into the phone's calendar with an alarm.
-- **Gear** — rename the dog, back up or restore the log, start over.
+- **Share** (↑ in the header) — a plain-text summary of where every medication
+  stands, a three-day symptom tally ("Vomited ×2, Blood in vomit"), and the
+  recent history with initials. Written to be pasted into a message to the vet.
+- **Bell** — puts the upcoming schedule into the phone's own calendar, one
+  alarmed event per dose, a week or 30 days at a time. This is the reminder
+  that actually works: a web page can't wake a sleeping phone, but a calendar
+  alarm can. In-app alerts are offered too, clearly marked as the weaker option.
+- **Gear** — set who's using the phone, hand the log to another phone, rename
+  the dog, back up or restore, start over.
 
 ## Putting it on a phone
 
@@ -44,10 +59,13 @@ It then opens full-screen like an app and works with no signal.
 
 ## Two people, two phones
 
-Each phone keeps its own log — there's no sync. If you're both giving meds,
-pick one phone as the record, and use **Share** to send the other person an
-update. Settings → Back up copies the whole log as text that can be pasted into
-the other phone to restore it.
+Put a name in Settings → *Who's using this phone* and every dose records who
+gave it — so "did anyone give him the Pepcid?" has an answer.
+
+There's still no live sync, but **Settings → Send the log to another phone**
+builds a link that carries the whole log inside it. The other phone opens the
+link, sees what's missing, and merges it in. Nothing is deleted on either side,
+nothing goes through a server, and opening the same link twice is harmless.
 
 ## Hosting it
 

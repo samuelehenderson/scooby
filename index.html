@@ -88,6 +88,77 @@ header{
 .dot{width:7px; height:7px; border-radius:50%; background:var(--accent); flex:none; align-self:center}
 .is-warn .dot{background:var(--warn)} .is-crit .dot{background:var(--crit)}
 
+/* ---------- tabs ---------- */
+.tabs{max-width:32rem; margin:10px auto 0; display:flex; gap:4px; background:var(--surface-2); padding:3px; border-radius:12px}
+.tabs button{
+  flex:1; padding:8px 6px; border-radius:9px; font-family:var(--font-display);
+  font-size:14.5px; font-weight:620; color:var(--ink-2); transition:background .15s ease, color .15s ease;
+}
+.tabs button[aria-selected="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+/* ---------- today strip ---------- */
+.today{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  background:var(--surface); border:1px solid var(--line); border-radius:12px;
+  padding:10px 12px; margin-top:14px;
+}
+.today-lab{font-size:11px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); width:100%}
+.tick{display:inline-flex; align-items:center; gap:5px; font-size:13px; color:var(--ink-2)}
+.tick b{font-weight:600; color:var(--ink)}
+.tick i{font-style:normal; font-family:var(--font-num); font-size:12px; color:var(--accent-ink);
+  background:var(--accent-soft); border-radius:6px; padding:1px 5px}
+.tick.none i{color:var(--ink-3); background:var(--surface-2)}
+
+/* ---------- calendar ---------- */
+.cal{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:12px; box-shadow:var(--shadow)}
+.cal-hd{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px}
+.cal-hd h3{font-size:17px}
+.cal-nav{display:flex; gap:2px}
+.cal-nav button{width:34px; height:34px; border-radius:9px; display:grid; place-items:center; color:var(--ink-2)}
+.cal-nav button:active{background:var(--surface-2)}
+.cal-nav svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.cal-grid{display:grid; grid-template-columns:repeat(7,1fr); gap:2px}
+.cal-wd{text-align:center; font-size:10.5px; font-weight:700; letter-spacing:.06em; color:var(--ink-3); padding-bottom:5px}
+.cal-cell{
+  aspect-ratio:1/1.28; min-width:0; border-radius:10px; display:flex; flex-direction:column; align-items:center;
+  justify-content:flex-start; gap:3px; padding-top:6px; position:relative; background:none;
+}
+.cal-cell.pad{pointer-events:none}
+.cal-cell .d{font-family:var(--font-num); font-size:13.5px; font-variant-numeric:tabular-nums; color:var(--ink); line-height:1}
+.cal-cell.out .d{color:var(--ink-3); opacity:.45}
+.cal-cell.future .d{color:var(--ink-2)}
+.cal-cell.today .d{font-weight:700; color:var(--accent-ink)}
+.cal-cell.today::before{
+  content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
+  width:26px; height:20px; border-radius:7px; background:var(--accent-soft);
+}
+.cal-cell.today .d{position:relative}
+.cal-cell[aria-pressed="true"]{background:var(--surface-2)}
+.cal-cell[aria-pressed="true"]::after{
+  content:""; position:absolute; inset:0; border:1.5px solid var(--accent); border-radius:10px;
+}
+.pips{display:flex; gap:2.5px; flex-wrap:wrap; justify-content:center; max-width:32px; margin-top:2px}
+.pip{width:5px; height:5px; border-radius:50%; background:var(--accent)}
+.pip.plan{background:none; border:1.2px solid var(--ink-3); opacity:.6}
+.pip.sym{background:var(--crit)}
+.pip.miss{background:var(--warn)}
+
+.legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:12px; padding-top:10px; border-top:1px solid var(--line-soft)}
+.legend span{display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:var(--ink-3)}
+
+.day-panel{margin-top:12px}
+.day-hd{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin:0 2px 8px}
+.day-hd h3{font-size:16px}
+.day-hd span{font-size:12.5px; color:var(--ink-3)}
+.plan-row{display:flex; gap:11px; align-items:center; padding:11px 14px; border-top:1px solid var(--line-soft)}
+.plan-row:first-child{border-top:0}
+.plan-row .row-t{color:var(--ink-2)}
+.plan-row.past .row-t, .plan-row.past .row-b{color:var(--ink-3)}
+.tagx{font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-3);
+  background:var(--surface-2); border-radius:6px; padding:2px 6px; flex:none}
+.tagx.due{color:var(--crit); background:var(--crit-soft)}
+.tagx.done{color:var(--accent-ink); background:var(--accent-soft)}
+
 /* ---------- section headings ---------- */
 .sec{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:26px 2px 10px}
 .sec h2{font-size:12px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3)}
@@ -186,6 +257,7 @@ textarea{resize:vertical; min-height:64px}
 a.btn{text-decoration:none}
 .btn:active{filter:brightness(.94)}
 .stack{display:flex; flex-direction:column; gap:10px}
+.sec-gap{height:1px; background:var(--line); margin:6px 0 2px}
 .muted{color:var(--ink-3); font-size:12.5px; line-height:1.5}
 
 /* ---------- dialog ---------- */
@@ -248,6 +320,10 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
     </button>
   </div>
   <div class="nextup" id="nextUp"><span class="dot"></span><span>Loading…</span></div>
+  <div class="tabs hidden" id="tabs" role="tablist">
+    <button type="button" role="tab" data-view="now" aria-selected="true">Doses</button>
+    <button type="button" role="tab" data-view="cal" aria-selected="false">Calendar</button>
+  </div>
 </header>
 
 <main class="wrap">
@@ -261,6 +337,7 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
 
   <!-- main app -->
   <section id="app" class="hidden">
+    <div class="today" id="todayStrip"></div>
     <div class="cards" id="cards"></div>
 
     <div class="sec"><h2>How he's doing</h2><button class="link" id="btnNote">Add a note</button></div>
@@ -273,6 +350,37 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
 
     <p class="muted" style="margin:18px 4px 0">
       This tracks what was given and when. It isn't medical advice — follow your vet's instructions, and call them about anything new or worse.
+    </p>
+  </section>
+
+  <!-- calendar -->
+  <section id="calview" class="hidden">
+    <div class="cal" style="margin-top:14px">
+      <div class="cal-hd">
+        <h3 id="calTitle">Month</h3>
+        <div class="cal-nav">
+          <button type="button" id="calPrev" aria-label="Previous month"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button type="button" id="calToday" aria-label="Back to today" style="width:auto;padding:0 11px;font-size:13.5px;font-weight:600">Today</button>
+          <button type="button" id="calNext" aria-label="Next month"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="legend">
+        <span><i class="pip"></i> given</span>
+        <span><i class="pip plan"></i> due</span>
+        <span><i class="pip miss"></i> missed</span>
+        <span><i class="pip sym"></i> symptom</span>
+      </div>
+    </div>
+
+    <div class="day-panel">
+      <div class="day-hd"><h3 id="dayTitle">Today</h3><span id="dayMeta"></span></div>
+      <div class="log" id="dayList"></div>
+    </div>
+
+    <button class="btn primary wide" id="btnIcsAll" style="margin-top:16px">Put this schedule in my calendar</button>
+    <p class="muted" style="margin:8px 4px 0">
+      Adds a real calendar event with an alarm for every remaining dose, so the phone rings whether or not this app is open.
     </p>
   </section>
 </main>
@@ -291,7 +399,7 @@ var mem = null;
 /* ---------------- state ---------------- */
 function defaults(){
   return {
-    v:1, dogName:"Scooby", setup:false, showAll:false, alerts:false,
+    v:1, dogName:"Scooby", setup:false, showAll:false, alerts:false, who:"", view:"now",
     meds:[
       {id:"pepcid", name:"Pepcid", sub:"famotidine", dose:"1 tablet", type:"fixed", intervalH:12,
        note:"Reduces stomach acid.", active:true},
@@ -413,6 +521,7 @@ var lastUndo = null;
 function giveDose(medId, when, note){
   var d = {id:uid(), medId:medId, t:when || Date.now()};
   if(note) d.note = note;
+  if(S.who) d.who = S.who;
   S.doses.push(d); save();
   lastUndo = {type:"dose", id:d.id};
   var med = medById(medId);
@@ -484,15 +593,38 @@ var ICON = {
   plus:  '<path d="M12 5v14M5 12h14"/>'
 };
 
+/* ---------------- today strip ---------------- */
+function renderToday(){
+  var w = $("#todayStrip");
+  w.innerHTML = "";
+  w.appendChild(el("div","today-lab","Given today"));
+  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+    var n = S.doses.filter(function(d){ return d.medId === m.id && sameDay(d.t, Date.now()); }).length;
+    var t = el("span","tick" + (n ? "" : " none"));
+    t.appendChild(el("b", null, m.name));
+    t.appendChild(el("i", null, n === 0 ? "\u2014" : (n === 1 ? "\u2713" : "\u2713\u00d7" + n)));
+    w.appendChild(t);
+  });
+}
+
 /* ---------------- render ---------------- */
 function render(){
   $("#dogName").textContent = S.dogName;
   document.title = S.dogName + "'s Meds";
-  if(!S.setup){ $("#setup").classList.remove("hidden"); $("#app").classList.add("hidden"); renderSetup(); tick(); return; }
-  $("#setup").classList.add("hidden"); $("#app").classList.remove("hidden");
-  renderCards();
-  renderChips();
-  renderLog();
+  if(!S.setup){
+    $("#setup").classList.remove("hidden"); $("#app").classList.add("hidden");
+    $("#calview").classList.add("hidden"); $("#tabs").classList.add("hidden");
+    renderSetup(); tick(); return;
+  }
+  $("#setup").classList.add("hidden");
+  $("#tabs").classList.remove("hidden");
+  var cal = S.view === "cal";
+  $("#app").classList.toggle("hidden", cal);
+  $("#calview").classList.toggle("hidden", !cal);
+  var tabs = document.querySelectorAll("#tabs button");
+  for(var i=0;i<tabs.length;i++) tabs[i].setAttribute("aria-selected", tabs[i].dataset.view === S.view ? "true" : "false");
+  if(cal) renderCal();
+  else { renderToday(); renderCards(); renderChips(); renderLog(); }
   tick();
 }
 
@@ -738,7 +870,7 @@ function timeline(){
   var rows = [];
   S.doses.forEach(function(d){
     var m = medById(d.medId);
-    rows.push({t:d.t, kind:"dose", id:d.id, title:(m ? m.name : "Medication") + " given", sub:m && m.dose ? m.dose : "", tone:""});
+    rows.push({t:d.t, kind:"dose", id:d.id, title:(m ? m.name : "Medication") + " given", sub:m && m.dose ? m.dose : "", tone:"", who:d.who || ""});
   });
   S.events.forEach(function(e){
     rows.push({t:e.t, kind:"event", id:e.id, title:e.text, sub:"", tone:e.tone});
@@ -763,7 +895,8 @@ function renderLog(){
       b.appendChild(p);
     } else {
       b.appendChild(el("span", null, r.title));
-      if(r.sub) b.appendChild(el("em", null, r.sub));
+      var sub = [r.sub, r.who ? "by " + r.who : ""].filter(Boolean).join(" · ");
+      if(sub) b.appendChild(el("em", null, sub));
     }
     row.appendChild(b);
     var x = el("button","row-x","Delete");
@@ -838,6 +971,44 @@ function renderNextUp(){
 }
 setInterval(tick, 15000);
 
+/* ---------------- projection ---------------- */
+function startOfDay(t){ var d = new Date(t); d.setHours(0,0,0,0); return d.getTime(); }
+function sameDay(a,b){ return startOfDay(a) === startOfDay(b); }
+
+// Every dose still to come for one medication, out to horizonEnd.
+function projectMed(med, horizonEnd){
+  var out = [], sc = schedule(med), guard = 0;
+  if(sc.complete) return out;
+  var t = sc.due != null ? sc.due : Date.now();
+  if(med.type === "taper"){
+    var idx = sc.count;
+    while(t <= horizonEnd && guard++ < 200){
+      var here = stageFor(med, idx);
+      if(!here) break;
+      out.push({medId:med.id, t:t, idx:idx});
+      idx++;
+      var nxt = stageFor(med, idx);
+      if(!nxt) break;
+      t += nxt.stage.h * HOUR;
+    }
+  } else {
+    var iv = (med.intervalH || 12) * HOUR;
+    while(t <= horizonEnd && guard++ < 200){
+      out.push({medId:med.id, t:t});
+      t += iv;
+    }
+  }
+  return out;
+}
+function projectAll(days){
+  var end = Date.now() + (days || 21) * 24 * HOUR, out = [];
+  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+    out = out.concat(projectMed(m, end));
+  });
+  out.sort(function(a,b){ return a.t - b.t; });
+  return out;
+}
+
 /* ---------------- reminders ---------------- */
 var notified = {};
 function alertsOn(){
@@ -879,58 +1050,198 @@ function icsStamp(t){
   return d.getUTCFullYear() + pad(d.getUTCMonth()+1) + pad(d.getUTCDate()) + "T" +
          pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + "00Z";
 }
-function buildIcs(){
-  var lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//" + S.dogName + " meds//EN","CALSCALE:GREGORIAN"];
-  var any = false;
-  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
-    var sc = schedule(m);
-    if(sc.complete || sc.due == null) return;
-    any = true;
-    var when = Math.max(sc.due, Date.now() + 60000);
+function icsEsc(v){ return String(v).replace(/\\/g,"\\\\").replace(/[;,]/g, function(c){ return "\\" + c; }).replace(/\n/g," "); }
+// days = how far ahead to schedule. Every remaining dose becomes its own alarmed event.
+function buildIcs(days){
+  var plan = projectAll(days || 21).filter(function(p){ return p.t > Date.now() - 5*MIN; });
+  if(!plan.length) return null;
+  if(plan.length > 400) plan = plan.slice(0, 400);
+  var lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//" + icsEsc(S.dogName) + " meds//EN","CALSCALE:GREGORIAN"];
+  plan.forEach(function(p){
+    var m = medById(p.medId);
+    if(!m) return;
+    var when = Math.max(p.t, Date.now() + 60000);
     lines.push("BEGIN:VEVENT",
-      "UID:" + m.id + "-" + when + "@meds",
+      "UID:" + m.id + "-" + when + "@scooby-meds",
       "DTSTAMP:" + icsStamp(Date.now()),
       "DTSTART:" + icsStamp(when),
-      "DURATION:PT5M",
-      "SUMMARY:" + S.dogName + " — " + m.name,
-      "DESCRIPTION:" + (m.dose || "1 tablet") + (m.note ? ". " + m.note.replace(/[\n,;]/g," ") : ""),
-      "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:" + m.name + " is due","TRIGGER:PT0M","END:VALARM",
+      "DURATION:PT10M",
+      "SUMMARY:" + icsEsc(S.dogName + " — " + m.name + (m.dose ? " (" + m.dose + ")" : "")),
+      "DESCRIPTION:" + icsEsc((m.dose || "1 tablet") + (m.note ? ". " + m.note : "")),
+      "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:" + icsEsc(m.name + " is due"),"TRIGGER:PT0M","END:VALARM",
       "END:VEVENT");
   });
   lines.push("END:VCALENDAR");
-  return any ? lines.join("\r\n") : null;
+  return {text:lines.join("\r\n"), count:plan.length};
+}
+function icsLink(node, days){
+  var built = buildIcs(days);
+  if(!built){ node.classList.add("hidden"); return null; }
+  node.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(built.text);
+  node.setAttribute("download", (S.dogName || "dog").toLowerCase().replace(/\W+/g,"-") + "-meds.ics");
+  return built;
 }
 function remindersSheet(){
   openSheet(function(body, close){
     sheetHead(body, "Reminders", "So a dose doesn't slip by.");
     var f = el("div","stack");
 
+    var box = el("div","panel");
+    box.style.background = "var(--accent-soft)"; box.style.border = "0";
+    box.appendChild(el("div", null, "Calendar alarms are the reliable ones."));
+    var p0 = el("p","muted","A phone can only ring on its own through its own clock. Putting the schedule in the calendar hands the job to the phone, so it works with this app closed, in a pocket, overnight.");
+    p0.style.marginTop = "6px"; p0.style.color = "var(--accent-ink)";
+    box.appendChild(p0);
+    f.appendChild(box);
+
+    var a = el("a","btn primary wide");
+    var week = icsLink(a, 7);
+    a.textContent = week ? "Add this week — " + week.count + " alarms" : "Nothing left to schedule";
+    if(!week){ a.classList.remove("primary"); a.classList.remove("hidden"); a.removeAttribute("href"); }
+    f.appendChild(a);
+
+    var a2 = el("a","btn wide");
+    var all = icsLink(a2, 30);
+    if(all && all.count > (week ? week.count : 0)){
+      a2.textContent = "Or the next 30 days — " + all.count + " alarms";
+      f.appendChild(a2);
+    }
+    f.appendChild(el("p","muted","Tap one, then pick which calendar to add it to. The prednisone step-downs are built in — the gaps widen to once a day, then every other day, on their own. Give a dose early or late and the later times shift with it, so come back and add the next stretch after a change."));
+
+    f.appendChild(el("div","sec-gap"));
+
     var supported = typeof Notification !== "undefined";
     var state = supported ? Notification.permission : "unsupported";
     var b1 = el("button","btn wide"); b1.type = "button";
-    b1.textContent = alertsOn() ? "Alerts are on — turn off" : "Turn on alerts in this app";
-    if(alertsOn()) b1.classList.add("primary");
+    b1.textContent = alertsOn() ? "In-app alerts are on — turn off" : "Also alert me inside the app";
     b1.onclick = function(){
-      if(alertsOn()){ S.alerts = false; save(); close(); toast("Alerts off"); }
-      else if(state === "granted"){ S.alerts = true; save(); close(); toast("Alerts on"); }
+      if(alertsOn()){ S.alerts = false; save(); close(); toast("In-app alerts off"); }
+      else if(state === "granted"){ S.alerts = true; save(); close(); toast("In-app alerts on"); }
+      else if(!supported){ toast("This browser can't show alerts"); }
       else askAlerts(close);
     };
     f.appendChild(b1);
     f.appendChild(el("p","muted", state === "denied"
-      ? "Alerts are blocked for this page — you'd need to allow notifications in your browser settings."
-      : "These pop up when a dose comes due, as long as this app has been opened and is still running in the background. Add it to your home screen first so it sticks around."));
-
-    var ics = buildIcs();
-    var b2 = el("a","btn primary wide"); b2.textContent = "Add the next doses to my calendar";
-    if(ics){
-      b2.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ics);
-      b2.setAttribute("download", "next-doses.ics");
-    } else {
-      b2.classList.add("hidden");
-    }
-    f.appendChild(b2);
-    f.appendChild(el("p","muted","This makes one calendar event with an alarm for each medication's next dose — the most reliable way to get a real alert. Do it again after you've given a round."));
+      ? "Blocked for this page — you'd have to allow notifications in browser settings. The calendar alarms above don't need this."
+      : "These only appear while the app is actually running. iPhones stop them once it's closed or swiped away, so treat them as a bonus on top of the calendar, not a substitute."));
     body.appendChild(f);
+  });
+}
+
+/* ---------------- calendar ---------------- */
+var calMonth = null;   // first of the displayed month
+var calPick = null;    // selected day (startOfDay)
+
+function monthStart(t){ var d = new Date(t); d.setDate(1); d.setHours(0,0,0,0); return d.getTime(); }
+
+function renderCal(){
+  if(calMonth == null) calMonth = monthStart(Date.now());
+  if(calPick == null) calPick = startOfDay(Date.now());
+  var first = new Date(calMonth);
+  $("#calTitle").textContent = first.toLocaleDateString([], {month:"long", year:"numeric"});
+
+  // bucket everything by day
+  var byDay = {};
+  function bucket(t){ var k = startOfDay(t); return (byDay[k] = byDay[k] || {given:[], plan:[], sym:0}); }
+  S.doses.forEach(function(d){ bucket(d.t).given.push(d); });
+  S.events.forEach(function(e){ bucket(e.t).sym++; });
+  projectAll(60).forEach(function(p){ bucket(p.t).plan.push(p); });
+
+  var grid = $("#calGrid");
+  grid.innerHTML = "";
+  ["S","M","T","W","T","F","S"].forEach(function(w, i){
+    var c = el("div","cal-wd", w); c.setAttribute("aria-hidden","true"); grid.appendChild(c);
+  });
+
+  var lead = first.getDay();
+  var daysIn = new Date(first.getFullYear(), first.getMonth()+1, 0).getDate();
+  var today = startOfDay(Date.now());
+
+  for(var i = 0; i < lead; i++){ var pad = el("div","cal-cell pad"); grid.appendChild(pad); }
+
+  for(var day = 1; day <= daysIn; day++){
+    (function(day){
+      var dt = new Date(first.getFullYear(), first.getMonth(), day).getTime();
+      var b = el("button","cal-cell"); b.type = "button";
+      if(dt === today) b.classList.add("today");
+      else if(dt > today) b.classList.add("future");
+      b.setAttribute("aria-pressed", dt === calPick ? "true" : "false");
+      b.setAttribute("aria-label", new Date(dt).toLocaleDateString([], {weekday:"long", month:"long", day:"numeric"}));
+      b.appendChild(el("span","d", String(day)));
+
+      var info = byDay[dt] || {given:[], plan:[], sym:0};
+      var pips = el("div","pips");
+      var shown = 0;
+      info.given.slice(0,6).forEach(function(){ pips.appendChild(el("i","pip")); shown++; });
+      if(dt >= today){
+        info.plan.slice(0, Math.max(0, 6 - shown)).forEach(function(p){
+          pips.appendChild(el("i","pip" + (p.t < Date.now() ? " miss" : " plan")));
+        });
+      }
+      if(info.sym) pips.appendChild(el("i","pip sym"));
+      b.appendChild(pips);
+      b.onclick = function(){ calPick = dt; renderCal(); };
+      grid.appendChild(b);
+    })(day);
+  }
+  renderDay();
+}
+
+function renderDay(){
+  var d = calPick, today = startOfDay(Date.now());
+  var label = fmtDay(d);
+  $("#dayTitle").textContent = label === "Today" || label === "Yesterday" || label === "Tomorrow"
+    ? label + ", " + new Date(d).toLocaleDateString([], {month:"short", day:"numeric"})
+    : new Date(d).toLocaleDateString([], {weekday:"long", month:"long", day:"numeric"});
+
+  var rows = [];
+  timeline().filter(function(r){ return sameDay(r.t, d); }).forEach(function(r){
+    rows.push({t:r.t, kind:r.kind, title:r.title, tone:r.tone, who:r.who, done:true});
+  });
+  if(d >= today){
+    projectAll(60).filter(function(p){ return sameDay(p.t, d); }).forEach(function(p){
+      var m = medById(p.medId);
+      rows.push({t:p.t, kind:"plan", title:(m ? m.name : "Medication"), sub:m && m.dose ? m.dose : "", done:false});
+    });
+  }
+  rows.sort(function(a,b){ return a.t - b.t; });
+
+  var w = $("#dayList");
+  w.innerHTML = "";
+  $("#dayMeta").textContent = rows.length
+    ? rows.filter(function(r){ return r.done && r.kind === "dose"; }).length + " given"
+      + (rows.filter(function(r){ return r.kind === "plan"; }).length ? " · " + rows.filter(function(r){ return r.kind === "plan"; }).length + " due" : "")
+    : "";
+
+  if(!rows.length){
+    w.appendChild(el("div","empty", d > today ? "Nothing scheduled." : "Nothing logged this day."));
+    return;
+  }
+
+  rows.forEach(function(r){
+    if(r.kind === "plan"){
+      var overdue = r.t <= Date.now();
+      var pr = el("div","plan-row");
+      pr.appendChild(el("div","row-t num", fmtTime(r.t)));
+      var pb = el("div","row-b");
+      pb.appendChild(el("span", null, r.title));
+      if(r.sub) pb.appendChild(el("em", null, r.sub));
+      pr.appendChild(pb);
+      if(overdue) pr.appendChild(el("span","tagx due","due now"));
+      w.appendChild(pr);
+      return;
+    }
+    var row = el("div","row" + (r.kind === "event" ? " sym" : ""));
+    row.appendChild(el("div","row-t num", fmtTime(r.t)));
+    var b = el("div","row-b");
+    if(r.kind === "event") b.appendChild(el("span","pill" + (r.tone ? " " + r.tone : ""), r.title));
+    else {
+      b.appendChild(el("span", null, r.title));
+      if(r.who) b.appendChild(el("em", null, "by " + r.who));
+    }
+    row.appendChild(b);
+    if(r.kind === "dose") row.appendChild(el("span","tagx done","\u2713"));
+    w.appendChild(row);
   });
 }
 
@@ -997,6 +1308,19 @@ function settingsSheet(){
     nm.onchange = function(){ S.dogName = nm.value.trim() || "My dog"; save(); render(); };
     w1.appendChild(nm); f.appendChild(w1);
 
+    var w2 = el("div");
+    w2.appendChild(el("label", null, "Who's using this phone"));
+    var who = el("input"); who.type = "text"; who.value = S.who || ""; who.placeholder = "e.g. Sam";
+    who.onchange = function(){ S.who = who.value.trim(); save(); render(); };
+    w2.appendChild(who);
+    var wn = el("p","muted","Optional. If you fill it in, each dose records who gave it — handy when two people are dosing.");
+    wn.style.marginTop = "6px"; w2.appendChild(wn);
+    f.appendChild(w2);
+
+    var hand = el("button","btn wide","Send the log to another phone"); hand.type="button";
+    hand.onclick = function(){ close(); handoffSheet(); };
+    f.appendChild(hand);
+
     var hidden = S.meds.filter(function(m){ return m.active === false; });
     if(hidden.length){
       var hw = el("div");
@@ -1044,15 +1368,122 @@ function summaryText(){
     if(m.type === "taper" && sc.next) s += " — stage " + (sc.next.i+1) + ", " + sc.count + " of " + totalDoses(m) + " given";
     lines.push(s);
   });
+  var digest = symptomDigest(3);
+  if(digest.length) lines.push("", "Last 3 days: " + digest.join(", "));
   lines.push("", "Recent history:");
   var cut = Date.now() - 3*24*HOUR, lastDay = null;
   timeline().filter(function(r){ return r.t >= cut; }).reverse().forEach(function(r){
     var d = fmtDay(r.t);
     if(d !== lastDay){ lines.push("", d + ":"); lastDay = d; }
-    lines.push("  " + fmtTime(r.t) + " — " + r.title);
+    lines.push("  " + fmtTime(r.t) + " — " + r.title + (r.who ? " (" + r.who + ")" : ""));
   });
   return lines.join("\n");
 }
+/* ---------------- hand-off between phones ---------------- */
+function b64enc(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""); }
+function b64dec(str){
+  var t = str.replace(/-/g,"+").replace(/_/g,"/");
+  while(t.length % 4) t += "=";
+  return decodeURIComponent(escape(atob(t)));
+}
+function doseKey(medId, t){ return medId + "@" + Math.round(t/MIN); }
+function evKey(text, t){ return text + "@" + Math.round(t/MIN); }
+
+function buildHandoff(){
+  var cut = Date.now() - 21*24*HOUR;
+  var payload = {
+    n: S.dogName,
+    d: S.doses.filter(function(x){ return x.t >= cut; }).map(function(x){ return [x.medId, x.t, x.who || ""]; }),
+    e: S.events.filter(function(x){ return x.t >= cut; }).map(function(x){ return [x.t, x.text, x.tone || ""]; })
+  };
+  var base = location.origin + location.pathname;
+  return base + "#log=" + b64enc(JSON.stringify(payload));
+}
+function mergeHandoff(raw){
+  var data;
+  try{ data = JSON.parse(b64dec(raw)); }catch(e){ return null; }
+  if(!data || !data.d) return null;
+  var haveD = {}, haveE = {};
+  S.doses.forEach(function(x){ haveD[doseKey(x.medId, x.t)] = 1; });
+  S.events.forEach(function(x){ haveE[evKey(x.text, x.t)] = 1; });
+  var addD = [], addE = [];
+  (data.d || []).forEach(function(r){
+    if(!medById(r[0])) return;
+    if(haveD[doseKey(r[0], r[1])]) return;
+    haveD[doseKey(r[0], r[1])] = 1;
+    addD.push({id:uid(), medId:r[0], t:r[1], who:r[2] || undefined});
+  });
+  (data.e || []).forEach(function(r){
+    if(haveE[evKey(r[1], r[0])]) return;
+    haveE[evKey(r[1], r[0])] = 1;
+    addE.push({id:uid(), t:r[0], text:r[1], tone:r[2] || ""});
+  });
+  return {addD:addD, addE:addE, name:data.n};
+}
+function offerMerge(raw){
+  var m = mergeHandoff(raw);
+  if(!m){ toast("That update link couldn't be read"); return; }
+  var total = m.addD.length + m.addE.length;
+  if(!total){ toast("Already up to date"); return; }
+  openSheet(function(body, close){
+    sheetHead(body, "Update from the other phone",
+      total + (total === 1 ? " entry isn't" : " entries aren't") + " in this phone's log yet.");
+    var f = el("div","stack");
+    var list = el("div","log");
+    m.addD.slice(0,8).forEach(function(d){
+      var med = medById(d.medId), row = el("div","row");
+      row.appendChild(el("div","row-t num", fmtTime(d.t)));
+      row.appendChild(el("div","row-b", (med ? med.name : "Medication") + " given" + (d.who ? " by " + d.who : "")));
+      list.appendChild(row);
+    });
+    m.addE.slice(0,4).forEach(function(e){
+      var row = el("div","row");
+      row.appendChild(el("div","row-t num", fmtTime(e.t)));
+      row.appendChild(el("div","row-b", e.text));
+      list.appendChild(row);
+    });
+    if(total > 12) list.appendChild(el("div","empty","and " + (total - 12) + " more"));
+    f.appendChild(list);
+    var go = el("button","btn primary wide","Add " + (total === 1 ? "it" : "them") + " to this phone"); go.type = "button";
+    go.onclick = function(){
+      S.doses = S.doses.concat(m.addD);
+      S.events = S.events.concat(m.addE);
+      save(); render(); close(); toast("Added " + total);
+    };
+    var no = el("button","btn wide","Skip"); no.type = "button"; no.onclick = close;
+    f.appendChild(go); f.appendChild(no);
+    body.appendChild(f);
+  });
+}
+function handoffSheet(){
+  var url = buildHandoff();
+  openSheet(function(body, close){
+    sheetHead(body, "Send the log to the other phone",
+      "They open the link and everything this phone knows gets added to theirs. Nothing is deleted on either side.");
+    var f = el("div","stack");
+    var b = el("button","btn primary wide","Send the link"); b.type = "button";
+    b.onclick = function(){
+      if(navigator.share) navigator.share({title: S.dogName + "'s log", url:url}).catch(function(){});
+      else { copy(url); toast("Link copied"); }
+      close();
+    };
+    var ta = el("textarea"); ta.value = url; ta.readOnly = true; ta.style.minHeight = "90px"; ta.spellcheck = false;
+    f.appendChild(b); f.appendChild(ta);
+    f.appendChild(el("p","muted","It's a long link because the whole log rides inside it — nothing is stored on a server. Send it whenever you hand off."));
+    body.appendChild(f);
+  });
+}
+
+/* ---------------- vet summary ---------------- */
+function symptomDigest(days){
+  var cut = Date.now() - days*24*HOUR, counts = {};
+  S.events.filter(function(e){ return e.t >= cut; }).forEach(function(e){
+    counts[e.text] = (counts[e.text] || 0) + 1;
+  });
+  return Object.keys(counts).sort(function(a,b){ return counts[b] - counts[a]; })
+    .map(function(k){ return k + (counts[k] > 1 ? " \u00d7" + counts[k] : ""); });
+}
+
 function shareSheet(){
   var text = summaryText();
   if(navigator.share){
@@ -1100,6 +1531,20 @@ function copy(text){
 }
 
 /* ---------------- wiring ---------------- */
+var tabBtns = document.querySelectorAll("#tabs button");
+for(var ti=0; ti<tabBtns.length; ti++){
+  (function(btn){
+    btn.onclick = function(){
+      S.view = btn.dataset.view; save(); render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    };
+  })(tabBtns[ti]);
+}
+$("#calPrev").onclick = function(){ var d = new Date(calMonth); d.setMonth(d.getMonth()-1); calMonth = d.getTime(); renderCal(); };
+$("#calNext").onclick = function(){ var d = new Date(calMonth); d.setMonth(d.getMonth()+1); calMonth = d.getTime(); renderCal(); };
+$("#calToday").onclick = function(){ calMonth = monthStart(Date.now()); calPick = startOfDay(Date.now()); renderCal(); };
+$("#btnIcsAll").onclick = function(){ remindersSheet(); };
+
 $("#btnSettings").onclick = settingsSheet;
 $("#btnShare").onclick = shareSheet;
 $("#btnRemind").onclick = remindersSheet;
@@ -1109,6 +1554,18 @@ $("#dogName").onclick = settingsSheet;
 document.addEventListener("visibilitychange", function(){ if(!document.hidden) tick(); });
 
 render();
+
+function consumeHash(){
+  var h = location.hash || "";
+  if(h.indexOf("#log=") !== 0) return;
+  var raw = h.slice(5);
+  if(history.replaceState) history.replaceState(null, "", location.pathname + location.search);
+  else location.hash = "";
+  if(S.setup) offerMerge(raw);
+  else toast("Finish setting up first, then open that link again");
+}
+window.addEventListener("hashchange", consumeHash);
+consumeHash();
 
 if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
   window.addEventListener("load", function(){
