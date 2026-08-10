@@ -185,7 +185,8 @@ header{
 .s-ok .cd-time{color:var(--ink)}
 .s-soon .cd-time{color:var(--warn)} .s-soon .cd-label{color:var(--warn)}
 .s-late .cd-time{color:var(--crit)} .s-late .cd-label{color:var(--crit)}
-.s-idle .cd-time{color:var(--ink-3); font-size:15px; font-family:var(--font-body)}
+.s-idle .cd-time, .s-prn .cd-time{color:var(--ink-3); font-size:15px; font-family:var(--font-body)}
+.s-done .cd-time{font-family:var(--font-display); font-size:17px; color:var(--ink-2)}
 
 .track{height:3px; background:var(--surface-2); margin:0 12px 0 15px; border-radius:2px; overflow:hidden}
 .track i{display:block; height:100%; background:var(--accent); border-radius:2px; transition:width .4s ease}
@@ -194,10 +195,17 @@ header{
 
 .card-note{font-size:12.5px; color:var(--ink-2); padding:10px 12px 0 15px; line-height:1.4}
 .stage{
-  display:inline-flex; align-items:center; gap:6px; margin:10px 12px 0 15px; padding:5px 9px;
+  display:inline-flex; vertical-align:top; align-items:center; gap:6px; margin:10px 12px 0 15px; padding:5px 9px;
   background:var(--accent-soft); color:var(--accent-ink); border-radius:8px;
   font-size:12px; font-weight:600; letter-spacing:.01em;
 }
+.supply{
+  display:inline-flex; vertical-align:top; align-items:center; gap:6px; margin:10px 12px 0 15px; padding:5px 9px;
+  background:var(--surface-2); color:var(--ink-2); border-radius:8px; font-size:12px; font-weight:600;
+}
+.supply.low{background:var(--warn-soft); color:var(--warn)}
+.supply.out{background:var(--crit-soft); color:var(--crit)}
+.card.s-prn::before{background:var(--ink-3)}
 .card-act{display:flex; gap:8px; padding:12px; padding-left:15px; align-items:stretch}
 .give{
   flex:1; background:var(--accent); color:var(--on-accent); border-radius:12px; padding:13px 12px;
@@ -211,7 +219,6 @@ header{
 .more:active{filter:brightness(.94)}
 .more svg{width:20px; height:20px; fill:currentColor}
 .last{font-size:12px; color:var(--ink-3); padding:0 15px 13px}
-.card.done .card-act{display:none}
 
 /* ---------- log ---------- */
 .log{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden}
@@ -402,16 +409,16 @@ function defaults(){
     v:1, dogName:"Scooby", setup:false, showAll:false, alerts:false, who:"", view:"now",
     meds:[
       {id:"pepcid", name:"Pepcid", sub:"famotidine", dose:"1 tablet", type:"fixed", intervalH:12,
-       note:"Reduces stomach acid.", active:true},
+       note:"Reduces stomach acid.", active:true, limit:{kind:"none"}},
       {id:"pred", name:"Prednisone", sub:"steroid", dose:"1 tablet", type:"taper", active:true,
        note:"Tapering dose — don't stop early without checking with your vet.",
        stages:[{h:12, doses:14, label:"every 12 hours"},
                {h:24, doses:7,  label:"once a day"},
-               {h:48, doses:4,  label:"every other day"}]},
+               {h:48, doses:4,  label:"every other day"}], limit:{kind:"none"}},
       {id:"cerenia", name:"Cerenia", sub:"maropitant", dose:"1 tablet", type:"fixed", intervalH:24,
-       note:"Anti-nausea.", active:true},
+       note:"Anti-nausea.", active:true, limit:{kind:"none"}},
       {id:"sucralfate", name:"Sucralfate", sub:"coats the stomach", dose:"1 tablet", type:"fixed", intervalH:24,
-       note:"Give 1 hour before food. Ask your vet about keeping it ~2 hours apart from the other meds.", active:true}
+       note:"Give 1 hour before food. Ask your vet about keeping it ~2 hours apart from the other meds.", active:true, limit:{kind:"none"}}
     ],
     doses:[], events:[]
   };
@@ -427,6 +434,12 @@ function migrate(s){
   var d = defaults();
   if(!s || typeof s!=="object") return d;
   s.meds = s.meds || d.meds; s.doses = s.doses || []; s.events = s.events || [];
+  s.meds.forEach(function(m){
+    if(!m.type) m.type = m.stages ? "taper" : "fixed";
+    if(!m.limit) m.limit = {kind:"none"};
+    if(m.type === "taper" && !m.stages) m.type = "fixed";
+    if(m.type === "fixed" && !m.intervalH) m.intervalH = 12;
+  });
   if(!s.dogName) s.dogName = d.dogName;
   return s;
 }
@@ -454,6 +467,11 @@ function fmtDay(t){
   if(diff === 1) return "Yesterday";
   if(diff === -1) return "Tomorrow";
   return d.toLocaleDateString([], {weekday:"long", month:"short", day:"numeric"});
+}
+function fmtDate(t){
+  var d = fmtDay(t);
+  if(d === "Today" || d === "Yesterday" || d === "Tomorrow") return d.toLowerCase();
+  return new Date(t).toLocaleDateString([], {weekday:"short", month:"short", day:"numeric"});
 }
 function fmtWhen(t){
   var d = fmtDay(t);
@@ -488,27 +506,67 @@ function stageFor(med, index){
   return null;
 }
 function totalDoses(med){
-  return med.stages.reduce(function(a,s){ return a + s.doses; }, 0);
+  return (med.stages || []).reduce(function(a,s){ return a + s.doses; }, 0);
 }
-// returns {last, due, intervalH, complete, stageInfo}
+function stageLabel(h){
+  if(h === 12) return "every 12 hours";
+  if(h === 24) return "once a day";
+  if(h === 48) return "every other day";
+  if(h === 8)  return "every 8 hours";
+  return "every " + h + " hours";
+}
+function medLimit(med){ return med.limit || {kind:"none"}; }
+
+// How many doses the whole course allows, or null for open-ended.
+function courseTotal(med){
+  var caps = [];
+  if(med.type === "taper") caps.push(totalDoses(med));
+  var L = medLimit(med);
+  if(L.kind === "count" && L.count != null) caps.push(Math.max(0, L.count|0));
+  return caps.length ? Math.min.apply(null, caps) : null;
+}
+function dosesLeft(med){
+  var tot = courseTotal(med);
+  return tot == null ? null : Math.max(0, tot - dosesOf(med.id).length);
+}
+function endsAt(med){
+  var L = medLimit(med);
+  return L.kind === "date" && L.until ? L.until : null;
+}
+
+// {count, last, due, intervalH, complete, prn, left, next}
 function schedule(med){
   var ds = dosesOf(med.id);
   var last = ds.length ? ds[ds.length-1].t : null;
-  var out = {count:ds.length, last:last, due:null, intervalH:null, complete:false, stage:null};
+  var out = {count:ds.length, last:last, due:null, intervalH:null,
+             complete:false, prn:med.type === "prn", left:dosesLeft(med)};
+  if(out.prn) return out;
+
   if(med.type === "taper"){
     var next = stageFor(med, ds.length);
-    out.stage = stageFor(med, Math.max(0, ds.length - (ds.length ? 1 : 0)));
-    if(!next){ out.complete = true; return out; }
+    if(!next){ out.complete = true; out.why = "course"; return out; }
     out.next = next;
     out.intervalH = next.stage.h;
   } else {
-    out.intervalH = med.intervalH;
+    out.intervalH = med.intervalH || 12;
   }
-  if(last != null) out.due = last + out.intervalH*HOUR;
+
+  if(out.left === 0){ out.complete = true; out.why = "supply"; return out; }
+
+  var end = endsAt(med);
+  if(end != null && Date.now() > end && last != null && last <= end){
+    // the stop date has passed
+    out.complete = true; out.why = "date"; return out;
+  }
+  if(last != null) out.due = last + out.intervalH * HOUR;
+  if(end != null && out.due != null && out.due > end){
+    out.complete = true; out.why = "date"; out.due = null;
+  }
   return out;
 }
 function statusOf(sc){
   if(sc.complete) return "done";
+  if(sc.prn) return "prn";
   if(sc.due == null) return "idle";
   var left = sc.due - Date.now();
   if(left <= 0) return "late";
@@ -636,7 +694,7 @@ function renderCards(){
   });
   list.sort(function(a,b){
     var sa = statusOf(a.sc), sb = statusOf(b.sc);
-    var rank = {late:0, soon:1, ok:2, idle:3, done:4};
+    var rank = {late:0, soon:1, ok:2, idle:3, prn:4, done:5};
     if(rank[sa] !== rank[sb]) return rank[sa] - rank[sb];
     if(a.sc.due && b.sc.due) return a.sc.due - b.sc.due;
     return 0;
@@ -661,14 +719,19 @@ function medCard(med, sc){
   if(med.sub) nm.appendChild(el("span","med-sub", med.sub));
   idc.appendChild(nm);
   var doseLine = med.dose || "1 tablet";
-  if(med.type === "taper" && sc.next) doseLine += " · " + sc.next.stage.label;
-  else if(med.intervalH) doseLine += " · every " + med.intervalH + " hours";
+  if(med.type === "prn") doseLine += " · when needed";
+  else if(med.type === "taper" && sc.next) doseLine += " · " + (sc.next.stage.label || stageLabel(sc.next.stage.h));
+  else if(med.intervalH) doseLine += " · " + stageLabel(med.intervalH);
   idc.appendChild(el("div","med-dose", doseLine));
   top.appendChild(idc);
 
   var cd = el("div","countdown");
   var time = el("div","cd-time"), lab = el("div","cd-label");
-  if(st === "done"){ time.textContent = "Finished"; lab.textContent = "course complete"; }
+  if(st === "done"){
+    time.textContent = "Finished";
+    lab.textContent = sc.why === "supply" ? "none left" : (sc.why === "date" ? "past end date" : "course complete");
+  }
+  else if(st === "prn"){ time.textContent = "As needed"; lab.textContent = "no set time"; }
   else if(st === "idle"){ time.textContent = "Not started"; lab.textContent = "tap to log"; }
   else { time.className = "cd-time num"; time.dataset.due = sc.due; lab.textContent = sc.due - Date.now() <= 0 ? "overdue" : "until next"; }
   cd.appendChild(time); cd.appendChild(lab);
@@ -682,15 +745,23 @@ function medCard(med, sc){
     track.appendChild(bar); card.appendChild(track);
   }
 
-  if(med.type === "taper"){
-    var total = totalDoses(med), tag;
-    if(sc.complete) tag = el("div","stage","All " + total + " doses given");
-    else {
-      var n = sc.next;
-      tag = el("div","stage", "Stage " + (n.i+1) + " of " + med.stages.length +
-        " · next is dose " + (n.inStage+1) + " of " + n.stage.doses + " (" + (sc.count) + " of " + total + " given)");
-    }
-    card.appendChild(tag);
+  if(med.type === "taper" && !sc.complete && sc.next){
+    var n = sc.next;
+    card.appendChild(el("div","stage", "Stage " + (n.i+1) + " of " + med.stages.length +
+      " · next is dose " + (n.inStage+1) + " of " + n.stage.doses));
+  }
+
+  var left = sc.left, endT = endsAt(med);
+  if(left != null){
+    var sup = el("div","supply" + (left === 0 ? " out" : (left <= 3 ? " low" : "")));
+    sup.textContent = left === 0
+      ? "None left — " + sc.count + " given in all"
+      : left + (left === 1 ? " dose left" : " doses left");
+    card.appendChild(sup);
+  } else if(endT != null){
+    var sup2 = el("div","supply" + (sc.complete ? " out" : ""));
+    sup2.textContent = (sc.complete ? "Ended " : "Last day ") + fmtDate(endT);
+    card.appendChild(sup2);
   }
 
   if(med.note) card.appendChild(el("div","card-note", med.note));
@@ -699,7 +770,7 @@ function medCard(med, sc){
     var act = el("div","card-act");
     var give = el("button","give" + (st === "late" ? " late" : ""));
     give.type = "button";
-    give.textContent = st === "idle" ? "Log first dose" : "Give now";
+    give.textContent = st === "idle" ? "Log first dose" : (st === "prn" ? "Log a dose" : "Give now");
     give.onclick = function(){ giveDose(med.id); };
     act.appendChild(give);
     var more = el("button","more");
@@ -710,7 +781,13 @@ function medCard(med, sc){
     card.appendChild(act);
   } else {
     var act2 = el("div","card-act");
-    var b2 = el("button","btn wide","Options");
+    if(sc.why === "supply" || sc.why === "date"){
+      var rf = el("button","btn primary","Refilled"); rf.type = "button"; rf.style.flex = "1";
+      rf.onclick = function(){ refillSheet(med); };
+      act2.appendChild(rf);
+    }
+    var b2 = el("button","btn" + ((sc.why === "supply" || sc.why === "date") ? "" : " wide"),
+      (sc.why === "supply" || sc.why === "date") ? "Edit" : "Options");
     b2.type="button"; b2.onclick = function(){ medMenu(med); };
     act2.appendChild(b2); card.appendChild(act2);
   }
@@ -735,7 +812,8 @@ function medMenu(med){
         save(); render(); close(); toast("Dose removed");
       });
     }
-    sheetItem(list, "Edit this medication", ICON.edit, function(){ close(); editMed(med); });
+    sheetItem(list, "How many are left", ICON.pill, function(){ close(); refillSheet(med); });
+    sheetItem(list, "Edit everything about it", ICON.edit, function(){ close(); editMed(med); });
     sheetItem(list, "Remove from the list", ICON.trash, function(){
       close();
       confirmSheet("Remove " + med.name + "?", "Doses already logged stay in the history.", "Remove", function(){
@@ -772,48 +850,217 @@ function logAtTime(med){
   });
 }
 
+function segmented(options, current, onPick){
+  var seg = el("div","seg");
+  options.forEach(function(o){
+    var b = el("button", null, o[1]); b.type = "button";
+    b.setAttribute("aria-pressed", o[0] === current ? "true" : "false");
+    b.onclick = function(){ onPick(o[0]); };
+    seg.appendChild(b);
+  });
+  return seg;
+}
+function numField(value, min, max){
+  var i = el("input"); i.type = "number"; i.inputMode = "numeric";
+  i.min = String(min == null ? 1 : min); if(max) i.max = String(max);
+  i.step = "1"; i.value = String(value);
+  return i;
+}
+
 function editMed(med){
   var isNew = !med;
-  openSheet(function(body, close){
-    sheetHead(body, isNew ? "Add a medication" : "Edit " + med.name);
-    var f = el("div","stack");
-    function field(labelText, node){
-      var w = el("div"); var l = el("label", null, labelText); w.appendChild(l); w.appendChild(node); f.appendChild(w); return node;
-    }
-    var name = el("input"); name.type="text"; name.value = med ? med.name : ""; name.placeholder = "Medication name";
-    field("Name", name);
-    var dose = el("input"); dose.type="text"; dose.value = med ? (med.dose||"") : "1 tablet"; dose.placeholder="1 tablet";
-    field("Dose", dose);
-    var isTaper = med && med.type === "taper";
-    var hrs;
-    if(!isTaper){
-      hrs = el("input"); hrs.type="number"; hrs.min="1"; hrs.step="1";
-      hrs.value = med ? (med.intervalH||12) : 12;
-      field("Give every (hours)", hrs);
-    } else {
-      var box = el("div","panel");
-      box.style.background = "var(--surface-2)"; box.style.border = "0";
-      box.appendChild(el("div","muted","This one steps down over time:"));
-      med.stages.forEach(function(s, i){
-        box.appendChild(el("div", null, "Stage " + (i+1) + " — " + s.doses + " doses, " + s.label));
-      });
-      field("Schedule", box);
-    }
-    var note = el("textarea"); note.value = med ? (med.note||"") : ""; note.placeholder = "Anything to remember — give with food, etc.";
-    field("Note", note);
+  // work on a copy so Cancel really cancels
+  var draft = isNew
+    ? {id:uid(), name:"", sub:"", dose:"1 tablet", note:"", type:"fixed", intervalH:12,
+       stages:[{h:12, doses:14}], limit:{kind:"none"}, active:true}
+    : JSON.parse(JSON.stringify(med));
+  if(!draft.stages || !draft.stages.length) draft.stages = [{h:12, doses:14}];
+  if(!draft.limit) draft.limit = {kind:"none"};
+  var given = isNew ? 0 : dosesOf(med.id).length;
 
-    var go = el("button","btn primary wide", isNew ? "Add medication" : "Save changes"); go.type="button";
-    go.onclick = function(){
-      var nm = name.value.trim();
-      if(!nm){ name.focus(); return; }
-      if(isNew){
-        S.meds.push({id:uid(), name:nm, dose:dose.value.trim()||"1 tablet", type:"fixed",
-          intervalH: Math.max(1, parseInt(hrs.value,10)||12), note:note.value.trim(), active:true});
-      } else {
-        med.name = nm; med.dose = dose.value.trim(); med.note = note.value.trim(); med.active = true;
-        if(!isTaper) med.intervalH = Math.max(1, parseInt(hrs.value,10)||med.intervalH);
+  openSheet(function(body, close){
+    function paint(){
+      body.innerHTML = "";
+      sheetHead(body, isNew ? "Add a medication" : "Edit " + (draft.name || "medication"),
+        isNew ? null : "Changes apply everywhere — the countdown, the calendar and any alarms you add from here on.");
+      var f = el("div","stack");
+      function field(labelText, node, hint){
+        var w = el("div");
+        w.appendChild(el("label", null, labelText));
+        w.appendChild(node);
+        if(hint){ var h = el("p","muted", hint); h.style.marginTop = "5px"; w.appendChild(h); }
+        f.appendChild(w); return node;
       }
-      save(); render(); close(); toast(isNew ? nm + " added" : "Saved");
+
+      var name = el("input"); name.type = "text"; name.value = draft.name; name.placeholder = "Medication name";
+      name.oninput = function(){ draft.name = name.value; };
+      field("Name", name);
+
+      var sub = el("input"); sub.type = "text"; sub.value = draft.sub || ""; sub.placeholder = "famotidine";
+      sub.oninput = function(){ draft.sub = sub.value; };
+      field("Also called (optional)", sub);
+
+      var dose = el("input"); dose.type = "text"; dose.value = draft.dose || ""; dose.placeholder = "1 tablet";
+      dose.oninput = function(){ draft.dose = dose.value; };
+      field("Dose", dose);
+
+      // ---- schedule ----
+      f.appendChild(el("div","sec-gap"));
+      field("Schedule", segmented(
+        [["fixed","On a clock"],["taper","Steps down"],["prn","As needed"]],
+        draft.type,
+        function(k){ draft.type = k; paint(); }));
+
+      if(draft.type === "fixed"){
+        var hrs = numField(draft.intervalH || 12, 1, 168);
+        hrs.oninput = function(){ draft.intervalH = Math.max(1, parseInt(hrs.value,10) || 1); };
+        field("Give every (hours)", hrs);
+        var quick = el("div","chips"); quick.style.marginTop = "8px";
+        [6,8,12,24,48].forEach(function(h){
+          var c = el("button","chip", stageLabel(h)); c.type = "button";
+          c.onclick = function(){ draft.intervalH = h; paint(); };
+          quick.appendChild(c);
+        });
+        f.appendChild(quick);
+      }
+
+      if(draft.type === "taper"){
+        var box = el("div","stack");
+        draft.stages.forEach(function(st, i){
+          var row = el("div","panel");
+          row.style.background = "var(--surface-2)"; row.style.border = "0";
+          var hd = el("div","day-hd"); hd.style.margin = "0 0 8px";
+          hd.appendChild(el("h3", null, "Stage " + (i+1)));
+          if(draft.stages.length > 1){
+            var rm = el("button","link","Remove"); rm.type = "button";
+            rm.style.color = "var(--crit)";
+            rm.onclick = function(){ draft.stages.splice(i,1); paint(); };
+            hd.appendChild(rm);
+          }
+          row.appendChild(hd);
+          var grid = el("div"); grid.style.display = "flex"; grid.style.gap = "8px";
+          var c1 = el("div"); c1.style.flex = "1";
+          c1.appendChild(el("label", null, "How many doses"));
+          var dn = numField(st.doses, 1, 999);
+          dn.oninput = function(){ st.doses = Math.max(1, parseInt(dn.value,10) || 1); };
+          c1.appendChild(dn);
+          var c2 = el("div"); c2.style.flex = "1";
+          c2.appendChild(el("label", null, "Every (hours)"));
+          var hn = numField(st.h, 1, 336);
+          hn.oninput = function(){ st.h = Math.max(1, parseInt(hn.value,10) || 1); };
+          c2.appendChild(hn);
+          grid.appendChild(c1); grid.appendChild(c2);
+          row.appendChild(grid);
+          row.appendChild(el("p","muted", st.doses + " \u00d7 " + stageLabel(st.h)));
+          box.appendChild(row);
+        });
+        var addSt = el("button","btn wide","+ Add a stage"); addSt.type = "button";
+        addSt.onclick = function(){
+          var last = draft.stages[draft.stages.length-1];
+          draft.stages.push({h: last ? last.h*2 : 24, doses: 7});
+          paint();
+        };
+        box.appendChild(addSt);
+        field("Stages", box, "Runs stage by stage as you log doses — " + totalDoses(draft) + " doses in all"
+          + (given ? ", " + given + " already given" : "") + ".");
+      }
+
+      // ---- when it ends ----
+      f.appendChild(el("div","sec-gap"));
+      var lk = draft.limit.kind || "none";
+      field("When does it stop?", segmented(
+        [["none","Keep going"],["count","Runs out"],["date","On a date"]],
+        lk,
+        function(k){
+          draft.limit = {kind:k};
+          if(k === "count") draft.limit.count = given + (draft.type === "taper" ? Math.max(1, totalDoses(draft) - given) : 14);
+          if(k === "date") draft.limit.until = startOfDay(Date.now() + 7*24*HOUR) + 24*HOUR - 1;
+          paint();
+        }));
+
+      if(lk === "count"){
+        var leftNow = Math.max(0, (draft.limit.count|0) - given);
+        var cnt = numField(leftNow, 0, 9999);
+        cnt.oninput = function(){ draft.limit.count = given + Math.max(0, parseInt(cnt.value,10) || 0); };
+        field("How many doses are left", cnt,
+          "Count what's in the bottle. " + given + " already logged, so this med finishes after " +
+          (given + leftNow) + " in total — then it drops off the schedule and out of the calendar.");
+      }
+      if(lk === "date"){
+        var dv = el("input"); dv.type = "date";
+        dv.value = new Date(draft.limit.until - d0()).toISOString().slice(0,10);
+        dv.onchange = function(){
+          var t = new Date(dv.value + "T00:00").getTime();
+          if(!isNaN(t)) draft.limit.until = t + 24*HOUR - 1;
+        };
+        field("Last day", dv, "Nothing is scheduled after this day.");
+      }
+      if(draft.type === "taper" && lk === "none"){
+        f.appendChild(el("p","muted","This one already ends on its own after " + totalDoses(draft) + " doses."));
+      }
+
+      f.appendChild(el("div","sec-gap"));
+      var note = el("textarea"); note.value = draft.note || "";
+      note.placeholder = "Anything to remember — give with food, keep apart from other meds…";
+      note.oninput = function(){ draft.note = note.value; };
+      field("Note", note);
+
+      var go = el("button","btn primary wide", isNew ? "Add medication" : "Save changes"); go.type = "button";
+      go.onclick = function(){
+        var nm = (draft.name || "").trim();
+        if(!nm){ name.focus(); toast("Give it a name first"); return; }
+        draft.name = nm;
+        draft.sub = (draft.sub || "").trim();
+        draft.dose = (draft.dose || "").trim() || "1 tablet";
+        draft.note = (draft.note || "").trim();
+        draft.stages.forEach(function(st){ st.label = stageLabel(st.h); });
+        if(draft.type !== "taper") delete draft.stages;
+        if(draft.type !== "fixed") delete draft.intervalH;
+        if(draft.limit.kind === "none") draft.limit = {kind:"none"};
+        draft.active = true;
+        if(isNew) S.meds.push(draft);
+        else {
+          for(var k in med) if(Object.prototype.hasOwnProperty.call(med, k)) delete med[k];
+          for(var k2 in draft) if(Object.prototype.hasOwnProperty.call(draft, k2)) med[k2] = draft[k2];
+        }
+        save(); render(); close(); toast(isNew ? nm + " added" : "Saved — everything updated");
+      };
+      f.appendChild(go);
+      var cancel = el("button","btn wide","Cancel"); cancel.type = "button"; cancel.onclick = close;
+      f.appendChild(cancel);
+      body.appendChild(f);
+    }
+    paint();
+  });
+}
+
+function refillSheet(med){
+  var given = dosesOf(med.id).length;
+  openSheet(function(body, close){
+    sheetHead(body, "Refilled " + med.name, "How many doses do you have now?");
+    var f = el("div","stack");
+    var n = numField(30, 1, 9999);
+    f.appendChild(n);
+    var quick = el("div","chips");
+    [7, 14, 30, 60].forEach(function(v){
+      var c = el("button","chip", v + " doses"); c.type = "button";
+      c.onclick = function(){ n.value = String(v); };
+      quick.appendChild(c);
+    });
+    f.appendChild(quick);
+    var go = el("button","btn primary wide","Save"); go.type = "button";
+    go.onclick = function(){
+      var v = Math.max(1, parseInt(n.value,10) || 0);
+      med.limit = {kind:"count", count: given + v};
+      if(med.type === "taper"){
+        // a refill means the course is being extended past its stages
+        var extra = (given + v) - totalDoses(med);
+        if(extra > 0){
+          var last = med.stages[med.stages.length-1];
+          med.stages.push({h:last.h, doses:extra, label:stageLabel(last.h)});
+        }
+      }
+      save(); render(); close(); toast(v + " doses added");
     };
     f.appendChild(go);
     body.appendChild(f);
@@ -978,11 +1225,16 @@ function sameDay(a,b){ return startOfDay(a) === startOfDay(b); }
 // Every dose still to come for one medication, out to horizonEnd.
 function projectMed(med, horizonEnd){
   var out = [], sc = schedule(med), guard = 0;
-  if(sc.complete) return out;
+  if(sc.complete || sc.prn) return out;
+  var left = sc.left;                       // null = open-ended
+  var end = endsAt(med);
+  if(end != null && end < horizonEnd) horizonEnd = end;
   var t = sc.due != null ? sc.due : Date.now();
+
   if(med.type === "taper"){
     var idx = sc.count;
-    while(t <= horizonEnd && guard++ < 200){
+    while(t <= horizonEnd && guard++ < 400){
+      if(left != null && out.length >= left) break;
       var here = stageFor(med, idx);
       if(!here) break;
       out.push({medId:med.id, t:t, idx:idx});
@@ -993,7 +1245,8 @@ function projectMed(med, horizonEnd){
     }
   } else {
     var iv = (med.intervalH || 12) * HOUR;
-    while(t <= horizonEnd && guard++ < 200){
+    while(t <= horizonEnd && guard++ < 400){
+      if(left != null && out.length >= left) break;
       out.push({medId:med.id, t:t});
       t += iv;
     }
@@ -1256,8 +1509,9 @@ function renderSetup(){
     nm.appendChild(el("span", null, m.name));
     if(m.sub) nm.appendChild(el("span","med-sub", m.sub));
     box.appendChild(nm);
-    var sched = m.type === "taper" ? (m.dose + " · " + m.stages[0].label + " to start")
-                                   : (m.dose + " · every " + m.intervalH + " hours");
+    var sched = m.type === "prn" ? (m.dose + " · when needed")
+      : m.type === "taper" ? (m.dose + " · " + (m.stages[0].label || stageLabel(m.stages[0].h)) + " to start")
+      : (m.dose + " · " + stageLabel(m.intervalH));
     box.appendChild(el("div","med-dose", sched));
     var seg = el("div","seg");
     [["now","Just now"],["none","Not yet"],["pick","Earlier…"]].forEach(function(opt){
@@ -1361,11 +1615,14 @@ function summaryText(){
   S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
     var sc = schedule(m), st = statusOf(sc);
     var s = "• " + m.name + " (" + (m.dose||"1 tablet") + "): ";
-    if(st === "done") s += "course finished";
+    if(st === "done") s += sc.why === "supply" ? "finished, none left"
+      : (sc.why === "date" ? "finished, past its end date" : "course finished");
+    else if(st === "prn") s += "as needed" + (sc.last != null ? ", last " + fmtWhen(sc.last) : ", none given yet");
     else if(sc.last == null) s += "not started";
     else s += "last " + fmtWhen(sc.last) + ", next " + fmtWhen(sc.due) +
       (st === "late" ? " — DUE NOW" : "");
     if(m.type === "taper" && sc.next) s += " — stage " + (sc.next.i+1) + ", " + sc.count + " of " + totalDoses(m) + " given";
+    if(sc.left != null && !sc.complete) s += " — " + sc.left + " left";
     lines.push(s);
   });
   var digest = symptomDigest(3);

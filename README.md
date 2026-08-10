@@ -21,6 +21,31 @@ and shows which stage it's on and how many tablets are left in the course.
 Any of these can be edited, removed, or added to from the app — the four above
 are just the starting point.
 
+## Medications that end
+
+Every medication can be told when to stop, from **⋯ → Edit everything about it**:
+
+- **Keep going** — open-ended, the default.
+- **Runs out** — say how many doses are left in the bottle. The card counts down
+  ("6 doses left"), turns amber at three, and when it hits zero the medication
+  reads *Finished*, stops appearing as due, drops out of the calendar, and is
+  left out of any alarms exported after that. A **Refilled** button puts it back.
+- **On a date** — nothing is scheduled past that day.
+
+A tapering medication also ends on its own once its stages are used up.
+
+## Changing a schedule
+
+The editor reaches every field: name, dose, note, and the schedule itself —
+a fixed interval, a multi-stage taper (add, remove, or retime any stage), or
+*as needed* for something with no clock at all. Edits are made on a copy, so
+Cancel really cancels.
+
+Nothing is stored twice: the countdowns, the calendar, the vet summary and the
+calendar alarms are all derived from the medication and the dose log. Change a
+taper stage from every 12 hours to every 8 and every one of them follows in the
+same breath.
+
 ## Two views
 
 **Doses** is the working screen: what's due, how long until the next one, and
