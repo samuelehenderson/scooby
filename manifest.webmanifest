@@ -1,7 +1,7 @@
 {
-  "name": "Scooby's Meds",
-  "short_name": "Meds",
-  "description": "A simple medication tracker for one dog.",
+  "name": "Scooby — medication tracker",
+  "short_name": "Scooby",
+  "description": "A plain medication tracker for pets and people.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Scooby's Meds</title>
-<meta name="description" content="A simple medication tracker for one dog.">
+<title>Scooby — medication tracker</title>
+<meta name="description" content="A plain medication tracker for pets and people. Everything stays on your device.">
 <meta name="theme-color" content="#f2f5f3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0d1412" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Meds">
+<meta name="apple-mobile-web-app-title" content="Scooby">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -87,6 +87,41 @@ header{
 .nextup.is-crit b{color:var(--crit)}
 .dot{width:7px; height:7px; border-radius:50%; background:var(--accent); flex:none; align-self:center}
 .is-warn .dot{background:var(--warn)} .is-crit .dot{background:var(--crit)}
+
+/* ---------- profile button ---------- */
+.whobtn{display:flex; align-items:center; gap:7px; flex:1; min-width:0; padding:4px 6px 4px 4px; border-radius:11px; text-align:left}
+.whobtn:active{background:var(--surface-2)}
+.whoicon{font-size:19px; line-height:1; flex:none}
+.chev{width:16px; height:16px; flex:none; fill:none; stroke:var(--ink-3); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round}
+
+/* ---------- gate ---------- */
+.gate-mark{display:block; width:46px; height:46px; margin:30px auto 0; color:var(--accent)}
+.gate-h{font-size:30px; text-align:center; letter-spacing:-.03em; margin-top:6px}
+.gate-sub{text-align:center; color:var(--ink-2); font-size:14.5px; margin:4px 0 20px}
+.gate-body h3{font-size:15px; margin-bottom:8px}
+.gate-body p{font-size:14px; line-height:1.5; margin:0 0 10px; color:var(--ink-2)}
+.gate-body b{color:var(--ink); font-weight:640}
+.gate-body ul{margin:0 0 10px; padding-left:18px; display:flex; flex-direction:column; gap:8px}
+.gate-body li{font-size:13.5px; line-height:1.45; color:var(--ink-2)}
+
+/* ---------- kind picker ---------- */
+.kinds{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
+.kindbtn{
+  display:flex; align-items:center; gap:8px; padding:12px; border-radius:12px;
+  border:1.5px solid var(--line); background:var(--surface); font-size:15px; font-weight:560;
+}
+.kindbtn[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-soft); color:var(--accent-ink)}
+.kindbtn span:first-child{font-size:19px}
+
+/* ---------- library picker ---------- */
+.libsearch{position:sticky; top:0; background:var(--surface); padding-bottom:10px; z-index:2}
+.liblist{display:flex; flex-direction:column; gap:2px; margin:0 -6px; max-height:46dvh; overflow-y:auto}
+.libitem{display:flex; flex-direction:column; gap:1px; padding:11px 8px; border-radius:10px; text-align:left; width:100%}
+.libitem:active{background:var(--surface-2)}
+.libitem b{font-size:15.5px; font-weight:620}
+.libitem b em{font-style:normal; font-weight:500; color:var(--ink-3); font-size:12.5px; margin-left:6px}
+.libitem span{font-size:12.5px; color:var(--ink-2)}
+.libitem i{font-style:normal; font-size:11.5px; color:var(--ink-3)}
 
 /* ---------- tabs ---------- */
 .tabs{max-width:32rem; margin:10px auto 0; display:flex; gap:4px; background:var(--surface-2); padding:3px; border-radius:12px}
@@ -315,7 +350,11 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
 
 <header>
   <div class="hdr-inner">
-    <h1 class="dogname" id="dogName">Scooby</h1>
+    <button class="whobtn" id="whoBtn" aria-label="Switch who this is for">
+      <span class="whoicon" id="whoIcon">🐶</span>
+      <span class="dogname" id="dogName">Scooby</span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
     <button class="icon-btn" id="btnRemind" aria-label="Reminders">
       <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7"/><path d="M13.7 20a2 2 0 0 1-3.4 0"/></svg>
     </button>
@@ -334,6 +373,47 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
 </header>
 
 <main class="wrap">
+  <!-- disclaimer gate -->
+  <section id="gate" class="hidden">
+    <svg class="gate-mark" viewBox="0 0 32 32" role="img" aria-label="Paw print">
+      <g fill="currentColor">
+        <ellipse cx="11" cy="10.6" rx="2.9" ry="3.4"/><ellipse cx="21" cy="10.6" rx="2.9" ry="3.4"/>
+        <ellipse cx="5.9" cy="17" rx="2.6" ry="3"/><ellipse cx="26.1" cy="17" rx="2.6" ry="3"/>
+        <path d="M16 14.6c4.1 0 7.4 3.6 7.4 6.9 0 2.6-2 4.2-4.5 4.2-1.2 0-2-.5-2.9-.5s-1.7.5-2.9.5c-2.5 0-4.5-1.6-4.5-4.2 0-3.3 3.3-6.9 7.4-6.9z"/>
+      </g>
+    </svg>
+    <h2 class="gate-h">Scooby</h2>
+    <p class="gate-sub">A plain medication tracker — for pets and for people.</p>
+    <div class="panel gate-body">
+      <h3>Read this first</h3>
+      <p><b>This app is a notebook, not a medical device.</b> It records what you tell it and counts the hours. That's all it does.</p>
+      <ul>
+        <li>It is <b>not medical or veterinary advice</b>, and no substitute for a vet, doctor, pharmacist, or nurse.</li>
+        <li>It does <b>not check doses, interactions, allergies, or whether a medication is right</b> for anyone. Every dose and time you enter comes from you.</li>
+        <li>Always follow the label and the instructions you were given. If this app and the label disagree, <b>the label is right</b>.</li>
+        <li>Reminders can fail — a phone dies, an alarm is missed, a page is closed. <b>Don't rely on it alone</b> for anything that matters.</li>
+        <li>The suggested schedules in the medication list are common starting points for filling in the form, <b>not a prescription</b>.</li>
+        <li>In an emergency, call your vet, your doctor, or emergency services. In the US: Poison Control 1-800-222-1222, Pet Poison Helpline 1-855-764-7661, ASPCA Poison Control 1-888-426-4435.</li>
+        <li>Provided as-is, with no warranty of any kind. You are responsible for what you give and when.</li>
+      </ul>
+      <p class="muted">Everything you enter stays on this device.</p>
+    </div>
+    <button class="btn primary wide" id="gateGo" style="margin-top:14px">I understand — continue</button>
+  </section>
+
+  <!-- who is this for -->
+  <section id="whoami" class="hidden">
+    <div class="sec"><h2 id="whoTitle">Who is this for?</h2></div>
+    <div class="panel">
+      <label for="whoName">Name</label>
+      <input type="text" id="whoName" placeholder="Scooby" autocomplete="off">
+      <label style="margin-top:14px">They are a…</label>
+      <div class="kinds" id="whoKinds"></div>
+    </div>
+    <button class="btn primary wide" id="whoGo" style="margin-top:14px">Continue</button>
+    <button class="btn wide hidden" id="whoCancel" style="margin-top:8px">Cancel</button>
+  </section>
+
   <!-- first run -->
   <section id="setup" class="hidden">
     <div class="sec"><h2>Set up</h2></div>
@@ -347,7 +427,7 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
     <div class="today" id="todayStrip"></div>
     <div class="cards" id="cards"></div>
 
-    <div class="sec"><h2>How he's doing</h2><button class="link" id="btnNote">Add a note</button></div>
+    <div class="sec"><h2 id="howTitle">How they're doing</h2><button class="link" id="btnNote">Add a note</button></div>
     <div class="panel">
       <div class="chips" id="symChips"></div>
     </div>
@@ -355,9 +435,8 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
     <div class="sec"><h2>History</h2><button class="link" id="btnAllLog">Show all</button></div>
     <div class="log" id="log"></div>
 
-    <p class="muted" style="margin:18px 4px 0">
-      This tracks what was given and when. It isn't medical advice — follow your vet's instructions, and call them about anything new or worse.
-    </p>
+    <p class="muted" id="footNote" style="margin:18px 4px 0"></p>
+    <button class="link" id="btnLegal" style="margin:10px 2px 0">Safety and disclaimer</button>
   </section>
 
   <!-- calendar -->
@@ -404,50 +483,156 @@ var HOUR = 3600000, MIN = 60000;
 var mem = null;
 
 /* ---------------- state ---------------- */
+function newProfile(name, kind){
+  return {id:uid(), name:name || "", kind:kind || "dog", meds:[], doses:[], events:[], setup:false};
+}
 function defaults(){
   return {
-    v:1, dogName:"Scooby", setup:false, showAll:false, alerts:false, who:"", view:"now",
-    meds:[
-      {id:"pepcid", name:"Pepcid", sub:"famotidine", dose:"1 tablet", type:"fixed", intervalH:12,
-       note:"Reduces stomach acid.", active:true, limit:{kind:"none"}},
-      {id:"pred", name:"Prednisone", sub:"steroid", dose:"1 tablet", type:"taper", active:true,
-       note:"Tapering dose — don't stop early without checking with your vet.",
-       stages:[{h:12, doses:14, label:"every 12 hours"},
-               {h:24, doses:7,  label:"once a day"},
-               {h:48, doses:4,  label:"every other day"}], limit:{kind:"none"}},
-      {id:"cerenia", name:"Cerenia", sub:"maropitant", dose:"1 tablet", type:"fixed", intervalH:24,
-       note:"Anti-nausea.", active:true, limit:{kind:"none"}},
-      {id:"sucralfate", name:"Sucralfate", sub:"coats the stomach", dose:"1 tablet", type:"fixed", intervalH:24,
-       note:"Give 1 hour before food. Ask your vet about keeping it ~2 hours apart from the other meds.", active:true, limit:{kind:"none"}}
-    ],
-    doses:[], events:[]
+    v:2, agreed:false, profiles:[], activeId:null,
+    showAll:false, alerts:false, who:"", view:"now"
   };
+}
+function normalizeMed(m){
+  if(!m.type) m.type = m.stages ? "taper" : "fixed";
+  if(!m.limit) m.limit = {kind:"none"};
+  if(m.type === "taper" && (!m.stages || !m.stages.length)) m.type = "fixed";
+  if(m.type === "fixed" && !m.intervalH) m.intervalH = 12;
+  if(m.active === undefined) m.active = true;
+  return m;
+}
+function migrate(s){
+  if(!s || typeof s !== "object") return defaults();
+  var out;
+  if(!s.profiles){
+    // v1: one dog, medications at the top level
+    var p = newProfile(s.dogName || "My pet", "dog");
+    p.meds = s.meds || []; p.doses = s.doses || []; p.events = s.events || [];
+    p.setup = !!s.setup;
+    out = defaults();
+    out.profiles = [p];
+    out.activeId = p.id;
+    out.who = s.who || ""; out.alerts = !!s.alerts; out.view = s.view || "now";
+  } else {
+    out = s;
+    out.v = 2;
+  }
+  if(!out.profiles.length){
+    var np = newProfile("", "dog");
+    out.profiles = [np]; out.activeId = np.id;
+  }
+  out.profiles.forEach(function(p){
+    p.meds = p.meds || []; p.doses = p.doses || []; p.events = p.events || [];
+    if(!p.kind) p.kind = "dog";
+    if(!p.id) p.id = uid();
+    p.meds.forEach(normalizeMed);
+  });
+  if(!out.profiles.some(function(p){ return p.id === out.activeId; })) out.activeId = out.profiles[0].id;
+  return out;
 }
 function load(){
   try{
     var raw = localStorage.getItem(KEY);
     if(raw) return migrate(JSON.parse(raw));
   }catch(e){}
-  return defaults();
-}
-function migrate(s){
-  var d = defaults();
-  if(!s || typeof s!=="object") return d;
-  s.meds = s.meds || d.meds; s.doses = s.doses || []; s.events = s.events || [];
-  s.meds.forEach(function(m){
-    if(!m.type) m.type = m.stages ? "taper" : "fixed";
-    if(!m.limit) m.limit = {kind:"none"};
-    if(m.type === "taper" && !m.stages) m.type = "fixed";
-    if(m.type === "fixed" && !m.intervalH) m.intervalH = 12;
-  });
-  if(!s.dogName) s.dogName = d.dogName;
-  return s;
+  return migrate(defaults());
 }
 function save(){
   mem = S;
   try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){}
 }
 var S = load();
+var P = null;
+function useProfile(){
+  P = null;
+  for(var i=0;i<S.profiles.length;i++) if(S.profiles[i].id === S.activeId) P = S.profiles[i];
+  if(!P) P = S.profiles[0];
+  return P;
+}
+useProfile();
+
+/* ---------------- who this profile is ---------------- */
+var KINDS = {
+  dog:    {label:"Dog",    icon:"\ud83d\udc36", pet:true,  pro:"vet"},
+  cat:    {label:"Cat",    icon:"\ud83d\udc31", pet:true,  pro:"vet"},
+  pet:    {label:"Other pet", icon:"\ud83d\udc3e", pet:true, pro:"vet"},
+  person: {label:"Person", icon:"\ud83d\udc64", pet:false, pro:"doctor"}
+};
+function kindOf(p){ return KINDS[(p || P).kind] || KINDS.dog; }
+function proWord(){ return kindOf(P).pro; }              // "vet" or "doctor"
+function isPet(){ return kindOf(P).pet; }
+
+
+/* ---------------- medication library ----------------
+   Names and the schedule shapes people most often see, offered only to save
+   typing. No amounts are suggested anywhere — the dose always comes from the
+   label in your hand. */
+var LIB = {
+  pet: [
+    {n:"Prednisone",    a:"steroid",            f:"Inflammation, immune conditions", h:12, taper:true},
+    {n:"Prednisolone",  a:"steroid",            f:"Inflammation, immune conditions", h:12, taper:true},
+    {n:"Pepcid",        a:"famotidine",         f:"Reduces stomach acid",            h:12},
+    {n:"Omeprazole",    a:"Prilosec",           f:"Reduces stomach acid",            h:24},
+    {n:"Cerenia",       a:"maropitant",         f:"Nausea and vomiting",             h:24},
+    {n:"Ondansetron",   a:"Zofran",             f:"Nausea and vomiting",             h:12},
+    {n:"Sucralfate",    a:"coats the stomach",  f:"Stomach ulcers — often given away from other meds", h:24},
+    {n:"Metronidazole", a:"Flagyl",             f:"Gut infections, diarrhea",        h:12},
+    {n:"Clavamox",      a:"amoxicillin-clavulanate", f:"Antibiotic",                 h:12},
+    {n:"Cephalexin",    a:"Keflex",             f:"Antibiotic",                      h:12},
+    {n:"Doxycycline",   a:"antibiotic",         f:"Antibiotic, tick-borne illness",  h:12},
+    {n:"Gabapentin",    a:"pain and anxiety",   f:"Pain, nerve pain, calming",       h:8},
+    {n:"Trazodone",     a:"calming",            f:"Anxiety, rest after surgery",     h:12},
+    {n:"Carprofen",     a:"Rimadyl",            f:"Pain and inflammation",           h:12},
+    {n:"Meloxicam",     a:"Metacam",            f:"Pain and inflammation",           h:24},
+    {n:"Galliprant",    a:"grapiprant",         f:"Arthritis pain",                  h:24},
+    {n:"Apoquel",       a:"oclacitinib",        f:"Itching and allergies",           h:12},
+    {n:"Mirtazapine",   a:"appetite",           f:"Appetite stimulant",              h:24},
+    {n:"Denamarin",     a:"SAMe + milk thistle", f:"Liver support — usually on an empty stomach", h:24},
+    {n:"Furosemide",    a:"Lasix",              f:"Fluid retention, heart failure",  h:12},
+    {n:"Pimobendan",    a:"Vetmedin",           f:"Heart failure",                   h:12},
+    {n:"Enalapril",     a:"heart",              f:"Heart and blood pressure",        h:12},
+    {n:"Levetiracetam", a:"Keppra",             f:"Seizures",                        h:8},
+    {n:"Phenobarbital", a:"seizures",           f:"Seizures",                        h:12},
+    {n:"Thyroid tablet", a:"levothyroxine",     f:"Underactive thyroid",             h:12},
+    {n:"Heartworm preventive", a:"monthly",     f:"Monthly prevention",              h:720},
+    {n:"Flea and tick",  a:"monthly",           f:"Monthly prevention",              h:720},
+    {n:"Probiotic",     a:"gut support",        f:"Digestive support",               h:24}
+  ],
+  person: [
+    {n:"Amoxicillin",   a:"antibiotic",         f:"Antibiotic",                      h:8},
+    {n:"Azithromycin",  a:"Z-Pak",              f:"Antibiotic",                       h:24},
+    {n:"Cephalexin",    a:"Keflex",             f:"Antibiotic",                       h:6},
+    {n:"Doxycycline",   a:"antibiotic",         f:"Antibiotic",                        h:12},
+    {n:"Ibuprofen",     a:"Advil, Motrin",      f:"Pain, fever, inflammation",        h:8},
+    {n:"Acetaminophen", a:"Tylenol",            f:"Pain and fever",                   h:6},
+    {n:"Naproxen",      a:"Aleve",              f:"Pain and inflammation",            h:12},
+    {n:"Prednisone",    a:"steroid",            f:"Inflammation, immune conditions",  h:24, taper:true},
+    {n:"Omeprazole",    a:"Prilosec",           f:"Reflux, stomach acid",             h:24},
+    {n:"Pantoprazole",  a:"Protonix",           f:"Reflux, stomach acid",             h:24},
+    {n:"Famotidine",    a:"Pepcid",             f:"Reflux, stomach acid",             h:12},
+    {n:"Ondansetron",   a:"Zofran",             f:"Nausea",                            h:8},
+    {n:"Metformin",     a:"diabetes",           f:"Blood sugar",                       h:12},
+    {n:"Lisinopril",    a:"blood pressure",     f:"Blood pressure",                    h:24},
+    {n:"Losartan",      a:"blood pressure",     f:"Blood pressure",                    h:24},
+    {n:"Amlodipine",    a:"blood pressure",     f:"Blood pressure",                    h:24},
+    {n:"Atorvastatin",  a:"Lipitor",            f:"Cholesterol",                       h:24},
+    {n:"Levothyroxine", a:"Synthroid",          f:"Thyroid — usually on an empty stomach", h:24},
+    {n:"Sertraline",    a:"Zoloft",             f:"Mood and anxiety",                  h:24},
+    {n:"Escitalopram",  a:"Lexapro",            f:"Mood and anxiety",                  h:24},
+    {n:"Bupropion",     a:"Wellbutrin",         f:"Mood",                              h:24},
+    {n:"Gabapentin",    a:"Neurontin",          f:"Nerve pain, seizures",              h:8},
+    {n:"Albuterol",     a:"rescue inhaler",     f:"Asthma — often as needed",          h:0},
+    {n:"Montelukast",   a:"Singulair",          f:"Asthma and allergies",              h:24},
+    {n:"Cetirizine",    a:"Zyrtec",             f:"Allergies",                          h:24},
+    {n:"Hydrochlorothiazide", a:"water pill",   f:"Blood pressure, fluid",             h:24},
+    {n:"Vitamin D",     a:"supplement",         f:"Supplement",                         h:24},
+    {n:"Iron",          a:"supplement",         f:"Supplement",                         h:24},
+    {n:"Birth control", a:"daily pill",         f:"Daily at the same time",            h:24},
+    {n:"Multivitamin",  a:"supplement",         f:"Supplement",                         h:24}
+  ]
+};
+function libFor(kind){
+  return (KINDS[kind] && KINDS[kind].pet) ? LIB.pet : LIB.person;
+}
 
 /* ---------------- helpers ---------------- */
 function $(sel, root){ return (root||document).querySelector(sel); }
@@ -495,7 +680,7 @@ function d0(){ return new Date().getTimezoneOffset()*MIN; }
 
 /* ---------------- schedule ---------------- */
 function dosesOf(medId){
-  return S.doses.filter(function(x){ return x.medId === medId; }).sort(function(a,b){ return a.t - b.t; });
+  return P.doses.filter(function(x){ return x.medId === medId; }).sort(function(a,b){ return a.t - b.t; });
 }
 function stageFor(med, index){
   var cum = 0;
@@ -580,7 +765,7 @@ function giveDose(medId, when, note){
   var d = {id:uid(), medId:medId, t:when || Date.now()};
   if(note) d.note = note;
   if(S.who) d.who = S.who;
-  S.doses.push(d); save();
+  P.doses.push(d); save();
   lastUndo = {type:"dose", id:d.id};
   var med = medById(medId);
   toast(med.name + " logged " + fmtTime(d.t), "Undo", undoLast);
@@ -588,19 +773,19 @@ function giveDose(medId, when, note){
 }
 function undoLast(){
   if(!lastUndo) return;
-  if(lastUndo.type === "dose") S.doses = S.doses.filter(function(d){ return d.id !== lastUndo.id; });
-  else S.events = S.events.filter(function(e){ return e.id !== lastUndo.id; });
+  if(lastUndo.type === "dose") P.doses = P.doses.filter(function(d){ return d.id !== lastUndo.id; });
+  else P.events = P.events.filter(function(e){ return e.id !== lastUndo.id; });
   lastUndo = null; save(); render(); toast("Removed");
 }
 function addEvent(text, tone){
   var e = {id:uid(), t:Date.now(), text:text, tone:tone||""};
-  S.events.push(e); save();
+  P.events.push(e); save();
   lastUndo = {type:"event", id:e.id};
   toast("Noted: " + text, "Undo", undoLast);
   render();
 }
 function medById(id){
-  for(var i=0;i<S.meds.length;i++) if(S.meds[i].id === id) return S.meds[i];
+  for(var i=0;i<P.meds.length;i++) if(P.meds[i].id === id) return P.meds[i];
   return null;
 }
 
@@ -656,8 +841,8 @@ function renderToday(){
   var w = $("#todayStrip");
   w.innerHTML = "";
   w.appendChild(el("div","today-lab","Given today"));
-  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
-    var n = S.doses.filter(function(d){ return d.medId === m.id && sameDay(d.t, Date.now()); }).length;
+  P.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+    var n = P.doses.filter(function(d){ return d.medId === m.id && sameDay(d.t, Date.now()); }).length;
     var t = el("span","tick" + (n ? "" : " none"));
     t.appendChild(el("b", null, m.name));
     t.appendChild(el("i", null, n === 0 ? "\u2014" : (n === 1 ? "\u2713" : "\u2713\u00d7" + n)));
@@ -666,21 +851,35 @@ function renderToday(){
 }
 
 /* ---------------- render ---------------- */
+function showOnly(id){
+  ["gate","whoami","setup","app","calview"].forEach(function(k){
+    $("#" + k).classList.toggle("hidden", k !== id);
+  });
+}
 function render(){
-  $("#dogName").textContent = S.dogName;
-  document.title = S.dogName + "'s Meds";
-  if(!S.setup){
-    $("#setup").classList.remove("hidden"); $("#app").classList.add("hidden");
-    $("#calview").classList.add("hidden"); $("#tabs").classList.add("hidden");
+  useProfile();
+  $("#dogName").textContent = P.name || "Set up";
+  $("#whoIcon").textContent = kindOf(P).icon;
+  document.title = P.name ? P.name + " — Scooby" : "Scooby";
+
+  var chrome = S.agreed && !!P.name;
+  document.querySelector("header").classList.toggle("hidden", !chrome);
+  if(!S.agreed){ showOnly("gate"); $("#tabs").classList.add("hidden"); return; }
+  if(!P.name){ showOnly("whoami"); $("#tabs").classList.add("hidden"); renderWho(); return; }
+
+  if(!P.setup && P.meds.length){
+    showOnly("setup"); $("#tabs").classList.add("hidden");
     renderSetup(); tick(); return;
   }
-  $("#setup").classList.add("hidden");
-  $("#tabs").classList.remove("hidden");
+  P.setup = true;
   var cal = S.view === "cal";
-  $("#app").classList.toggle("hidden", cal);
-  $("#calview").classList.toggle("hidden", !cal);
+  showOnly(cal ? "calview" : "app");
+  $("#tabs").classList.remove("hidden");
   var tabs = document.querySelectorAll("#tabs button");
   for(var i=0;i<tabs.length;i++) tabs[i].setAttribute("aria-selected", tabs[i].dataset.view === S.view ? "true" : "false");
+  $("#howTitle").textContent = "How they're doing";
+  $("#footNote").textContent = "This records what was given and when — it isn't medical advice. "
+    + "Follow the label and your " + proWord() + "'s instructions, and call them about anything new or worse.";
   if(cal) renderCal();
   else { renderToday(); renderCards(); renderChips(); renderLog(); }
   tick();
@@ -689,7 +888,7 @@ function render(){
 function renderCards(){
   var wrap = $("#cards");
   wrap.innerHTML = "";
-  var list = S.meds.filter(function(m){ return m.active !== false; }).map(function(m){
+  var list = P.meds.filter(function(m){ return m.active !== false; }).map(function(m){
     return {med:m, sc:schedule(m)};
   });
   list.sort(function(a,b){
@@ -703,7 +902,7 @@ function renderCards(){
 
   var add = el("button","btn wide","+ Add a medication");
   add.type = "button"; add.style.marginTop = "2px";
-  add.onclick = function(){ editMed(null); };
+  add.onclick = addMedSheet;
   wrap.appendChild(add);
 }
 
@@ -808,7 +1007,7 @@ function medMenu(med){
     if(ds.length){
       sheetItem(list, "Undo last dose (" + fmtTime(ds[ds.length-1].t) + ")", ICON.undo, function(){
         var id = ds[ds.length-1].id;
-        S.doses = S.doses.filter(function(d){ return d.id !== id; });
+        P.doses = P.doses.filter(function(d){ return d.id !== id; });
         save(); render(); close(); toast("Dose removed");
       });
     }
@@ -867,12 +1066,12 @@ function numField(value, min, max){
   return i;
 }
 
-function editMed(med){
+function editMed(med, seed){
   var isNew = !med;
   // work on a copy so Cancel really cancels
   var draft = isNew
-    ? {id:uid(), name:"", sub:"", dose:"1 tablet", note:"", type:"fixed", intervalH:12,
-       stages:[{h:12, doses:14}], limit:{kind:"none"}, active:true}
+    ? (seed || {id:uid(), name:"", sub:"", dose:"1 tablet", note:"", type:"fixed", intervalH:12,
+                stages:[{h:12, doses:14}], limit:{kind:"none"}, active:true})
     : JSON.parse(JSON.stringify(med));
   if(!draft.stages || !draft.stages.length) draft.stages = [{h:12, doses:14}];
   if(!draft.limit) draft.limit = {kind:"none"};
@@ -1018,7 +1217,7 @@ function editMed(med){
         if(draft.type !== "fixed") delete draft.intervalH;
         if(draft.limit.kind === "none") draft.limit = {kind:"none"};
         draft.active = true;
-        if(isNew) S.meds.push(draft);
+        if(isNew) P.meds.push(draft);
         else {
           for(var k in med) if(Object.prototype.hasOwnProperty.call(med, k)) delete med[k];
           for(var k2 in draft) if(Object.prototype.hasOwnProperty.call(draft, k2)) med[k2] = draft[k2];
@@ -1079,7 +1278,7 @@ function confirmSheet(title, sub, actLabel, fn){
 }
 
 /* ---------------- symptoms ---------------- */
-var SYMPTOMS = [
+var SYMPTOMS_PET = [
   {t:"Vomited", tone:"bad"},
   {t:"Blood in vomit", tone:"bad"},
   {t:"Black / tarry stool", tone:"bad"},
@@ -1088,12 +1287,24 @@ var SYMPTOMS = [
   {t:"Ate a meal", tone:"good"},
   {t:"Drank water", tone:"good"},
   {t:"Low energy", tone:"bad"},
-  {t:"Bright and himself", tone:"good"},
+  {t:"Bright and alert", tone:"good"},
   {t:"Peed / pooped", tone:""}
+];
+var SYMPTOMS_PERSON = [
+  {t:"Nausea", tone:"bad"},
+  {t:"Vomited", tone:"bad"},
+  {t:"Pain", tone:"bad"},
+  {t:"Headache", tone:"bad"},
+  {t:"Dizzy", tone:"bad"},
+  {t:"Fever", tone:"bad"},
+  {t:"Ate a meal", tone:"good"},
+  {t:"Slept well", tone:"good"},
+  {t:"Tired", tone:"bad"},
+  {t:"Feeling better", tone:"good"}
 ];
 function renderChips(){
   var w = $("#symChips"); w.innerHTML = "";
-  SYMPTOMS.forEach(function(s){
+  (isPet() ? SYMPTOMS_PET : SYMPTOMS_PERSON).forEach(function(s){
     var b = el("button","chip" + (s.tone ? " " + s.tone : ""), s.t);
     b.type = "button";
     b.onclick = function(){ addEvent(s.t, s.tone); };
@@ -1115,11 +1326,11 @@ function noteSheet(){
 /* ---------------- log ---------------- */
 function timeline(){
   var rows = [];
-  S.doses.forEach(function(d){
+  P.doses.forEach(function(d){
     var m = medById(d.medId);
     rows.push({t:d.t, kind:"dose", id:d.id, title:(m ? m.name : "Medication") + " given", sub:m && m.dose ? m.dose : "", tone:"", who:d.who || ""});
   });
-  S.events.forEach(function(e){
+  P.events.forEach(function(e){
     rows.push({t:e.t, kind:"event", id:e.id, title:e.text, sub:"", tone:e.tone});
   });
   rows.sort(function(a,b){ return b.t - a.t; });
@@ -1150,8 +1361,8 @@ function renderLog(){
     x.type = "button"; x.setAttribute("aria-label","Delete this entry");
     x.onclick = function(){
       confirmSheet("Delete this entry?", fmtTime(r.t) + " · " + r.title, "Delete", function(){
-        if(r.kind === "dose") S.doses = S.doses.filter(function(d){ return d.id !== r.id; });
-        else S.events = S.events.filter(function(e){ return e.id !== r.id; });
+        if(r.kind === "dose") P.doses = P.doses.filter(function(d){ return d.id !== r.id; });
+        else P.events = P.events.filter(function(e){ return e.id !== r.id; });
         save(); render(); toast("Deleted");
       });
     };
@@ -1193,8 +1404,8 @@ function tick(){
 function renderNextUp(){
   var box = $("#nextUp");
   box.className = "nextup";
-  if(!S.setup){ box.innerHTML = '<span class="dot"></span><span>Let\'s get set up.</span>'; return; }
-  var items = S.meds.filter(function(m){ return m.active !== false; })
+  if(!P.setup){ box.innerHTML = '<span class="dot"></span><span>Let\'s get set up.</span>'; return; }
+  var items = P.meds.filter(function(m){ return m.active !== false; })
     .map(function(m){ return {m:m, sc:schedule(m)}; })
     .filter(function(x){ return x.sc.due != null && !x.sc.complete; });
   var lateOnes = items.filter(function(x){ return x.sc.due <= Date.now(); });
@@ -1255,7 +1466,7 @@ function projectMed(med, horizonEnd){
 }
 function projectAll(days){
   var end = Date.now() + (days || 21) * 24 * HOUR, out = [];
-  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+  P.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
     out = out.concat(projectMed(m, end));
   });
   out.sort(function(a,b){ return a.t - b.t; });
@@ -1270,13 +1481,13 @@ function alertsOn(){
 function checkAlerts(){
   if(!alertsOn()) return;
   var now = Date.now();
-  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+  P.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
     var sc = schedule(m);
     if(sc.complete || sc.due == null) return;
     var key = m.id + ":" + sc.due;
     if(sc.due > now || notified[key]) return;
     notified[key] = 1;
-    fire(m.name + " is due", (m.dose || "1 tablet") + " for " + S.dogName);
+    fire(m.name + " is due", (m.dose || "1 tablet") + " for " + P.name);
   });
 }
 function fire(title, body){
@@ -1309,7 +1520,7 @@ function buildIcs(days){
   var plan = projectAll(days || 21).filter(function(p){ return p.t > Date.now() - 5*MIN; });
   if(!plan.length) return null;
   if(plan.length > 400) plan = plan.slice(0, 400);
-  var lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//" + icsEsc(S.dogName) + " meds//EN","CALSCALE:GREGORIAN"];
+  var lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//" + icsEsc(P.name) + " meds//EN","CALSCALE:GREGORIAN"];
   plan.forEach(function(p){
     var m = medById(p.medId);
     if(!m) return;
@@ -1319,7 +1530,7 @@ function buildIcs(days){
       "DTSTAMP:" + icsStamp(Date.now()),
       "DTSTART:" + icsStamp(when),
       "DURATION:PT10M",
-      "SUMMARY:" + icsEsc(S.dogName + " — " + m.name + (m.dose ? " (" + m.dose + ")" : "")),
+      "SUMMARY:" + icsEsc(P.name + " — " + m.name + (m.dose ? " (" + m.dose + ")" : "")),
       "DESCRIPTION:" + icsEsc((m.dose || "1 tablet") + (m.note ? ". " + m.note : "")),
       "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:" + icsEsc(m.name + " is due"),"TRIGGER:PT0M","END:VALARM",
       "END:VEVENT");
@@ -1331,7 +1542,7 @@ function icsLink(node, days){
   var built = buildIcs(days);
   if(!built){ node.classList.add("hidden"); return null; }
   node.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(built.text);
-  node.setAttribute("download", (S.dogName || "dog").toLowerCase().replace(/\W+/g,"-") + "-meds.ics");
+  node.setAttribute("download", (P.name || "dog").toLowerCase().replace(/\W+/g,"-") + "-meds.ics");
   return built;
 }
 function remindersSheet(){
@@ -1396,8 +1607,8 @@ function renderCal(){
   // bucket everything by day
   var byDay = {};
   function bucket(t){ var k = startOfDay(t); return (byDay[k] = byDay[k] || {given:[], plan:[], sym:0}); }
-  S.doses.forEach(function(d){ bucket(d.t).given.push(d); });
-  S.events.forEach(function(e){ bucket(e.t).sym++; });
+  P.doses.forEach(function(d){ bucket(d.t).given.push(d); });
+  P.events.forEach(function(e){ bucket(e.t).sym++; });
   projectAll(60).forEach(function(p){ bucket(p.t).plan.push(p); });
 
   var grid = $("#calGrid");
@@ -1498,11 +1709,181 @@ function renderDay(){
   });
 }
 
+/* ---------------- profiles ---------------- */
+var whoDraft = null;   // {id?, name, kind} while the who-screen is open
+
+function renderWho(){
+  if(!whoDraft) whoDraft = {id:P.id, name:P.name || "", kind:P.kind || "dog"};
+  var editing = S.profiles.length > 1 || !!P.name;
+  $("#whoTitle").textContent = whoDraft.id && P.name ? "Edit " + P.name : "Who is this for?";
+  $("#whoCancel").classList.toggle("hidden", !P.name && S.profiles.length < 2);
+  var nm = $("#whoName");
+  if(nm.value !== whoDraft.name) nm.value = whoDraft.name;
+  nm.placeholder = whoDraft.kind === "person" ? "Their name" : "Your pet's name";
+  var w = $("#whoKinds");
+  w.innerHTML = "";
+  ["dog","cat","pet","person"].forEach(function(k){
+    var b = el("button","kindbtn"); b.type = "button";
+    b.setAttribute("aria-pressed", whoDraft.kind === k ? "true" : "false");
+    b.appendChild(el("span", null, KINDS[k].icon));
+    b.appendChild(el("span", null, KINDS[k].label));
+    b.onclick = function(){ whoDraft.kind = k; renderWho(); };
+    w.appendChild(b);
+  });
+}
+
+function profileSheet(){
+  openSheet(function(body, close){
+    sheetHead(body, "Who are you tracking?");
+    var list = el("div","sheet-list");
+    S.profiles.forEach(function(p){
+      var b = el("button","sheet-item"); b.type = "button";
+      var ic = el("span", null, KINDS[p.kind] ? KINDS[p.kind].icon : "\ud83d\udc3e");
+      ic.style.fontSize = "19px";
+      b.appendChild(ic);
+      var box = el("span"); box.style.flex = "1";
+      box.appendChild(el("span", null, p.name || "Unnamed"));
+      var due = p.meds.filter(function(m){ return m.active !== false; }).length;
+      var sub = el("em", null, due + (due === 1 ? " medication" : " medications"));
+      sub.style.display = "block"; sub.style.fontSize = "12.5px"; sub.style.color = "var(--ink-3)"; sub.style.fontStyle = "normal";
+      box.appendChild(sub);
+      b.appendChild(box);
+      if(p.id === S.activeId){
+        var tick2 = el("span", null, "\u2713");
+        tick2.style.color = "var(--accent)"; tick2.style.fontWeight = "700";
+        b.appendChild(tick2);
+      }
+      b.onclick = function(){
+        S.activeId = p.id; save(); useProfile(); render(); close();
+      };
+      list.appendChild(b);
+    });
+    body.appendChild(list);
+
+    var f = el("div","stack"); f.style.marginTop = "10px";
+    var add = el("button","btn primary wide","+ Add someone else"); add.type = "button";
+    add.onclick = function(){
+      var np = newProfile("", "dog");
+      S.profiles.push(np); S.activeId = np.id;
+      whoDraft = {id:np.id, name:"", kind:"dog"};
+      save(); useProfile(); render(); close();
+    };
+    f.appendChild(add);
+
+    if(P.name){
+      var ed = el("button","btn wide","Edit " + P.name); ed.type = "button";
+      ed.onclick = function(){
+        whoDraft = {id:P.id, name:P.name, kind:P.kind};
+        P.name = "";           // sends render() to the who-screen
+        render(); close();
+      };
+      f.appendChild(ed);
+    }
+    if(S.profiles.length > 1){
+      var del = el("button","btn danger wide","Remove " + (P.name || "this one")); del.type = "button";
+      del.onclick = function(){
+        close();
+        confirmSheet("Remove " + (P.name || "this profile") + "?",
+          "Their medications and their whole log go with them. This can't be undone.", "Remove", function(){
+          S.profiles = S.profiles.filter(function(x){ return x.id !== P.id; });
+          S.activeId = S.profiles[0].id;
+          save(); useProfile(); render(); toast("Removed");
+        });
+      };
+      f.appendChild(del);
+    }
+    body.appendChild(f);
+  });
+}
+
+/* ---------------- add a medication ---------------- */
+function addMedSheet(){
+  var q = "";
+  openSheet(function(body, close){
+    function paint(){
+      body.innerHTML = "";
+      sheetHead(body, "Add a medication",
+        "Pick one to fill in the form, or enter it yourself. You set the dose and the times either way.");
+      var wrap = el("div","libsearch");
+      var inp = el("input"); inp.type = "text"; inp.placeholder = "Search medications";
+      inp.value = q; inp.autocomplete = "off";
+      inp.oninput = function(){ q = inp.value; paintList(); };
+      wrap.appendChild(inp);
+      body.appendChild(wrap);
+
+      var list = el("div","liblist");
+      body.appendChild(list);
+
+      function paintList(){
+        list.innerHTML = "";
+        var term = q.trim().toLowerCase();
+        var pool = libFor(P.kind);
+        var other = pool === LIB.pet ? LIB.person : LIB.pet;
+        var hits = pool.filter(function(x){
+          return !term || x.n.toLowerCase().indexOf(term) >= 0 || (x.a || "").toLowerCase().indexOf(term) >= 0;
+        });
+        if(term){
+          other.filter(function(x){
+            return (x.n.toLowerCase().indexOf(term) >= 0 || (x.a || "").toLowerCase().indexOf(term) >= 0)
+              && !hits.some(function(h){ return h.n === x.n; });
+          }).forEach(function(x){ hits.push(x); });
+        }
+        if(!hits.length){
+          list.appendChild(el("div","empty","Nothing by that name — enter it manually below."));
+          return;
+        }
+        hits.forEach(function(x){
+          var b = el("button","libitem"); b.type = "button";
+          var t = el("b", null, x.n);
+          if(x.a) t.appendChild(el("em", null, x.a));
+          b.appendChild(t);
+          b.appendChild(el("span", null, x.f));
+          b.appendChild(el("i", null, x.h === 0 ? "usually as needed" : "commonly " + stageLabel(x.h)));
+          b.onclick = function(){
+            close();
+            var seed = {id:uid(), name:x.n, sub:x.a || "", dose:"", note:x.f,
+                        type: x.h === 0 ? "prn" : "fixed", intervalH: x.h || 12,
+                        stages:[{h:12, doses:14}], limit:{kind:"none"}, active:true};
+            editMed(null, seed);
+          };
+          list.appendChild(b);
+        });
+      }
+      paintList();
+
+      var f = el("div","stack"); f.style.marginTop = "12px";
+      var man = el("button","btn wide","Enter one manually"); man.type = "button";
+      man.onclick = function(){ close(); editMed(null); };
+      f.appendChild(man);
+      f.appendChild(el("p","muted","The times listed are what these are commonly given as — a starting point for the form, not a prescription. Always use what's on your label."));
+      body.appendChild(f);
+    }
+    paint();
+  });
+}
+
+/* ---------------- legal ---------------- */
+function legalSheet(){
+  openSheet(function(body, close){
+    sheetHead(body, "Safety and disclaimer");
+    var d = el("div","gate-body");
+    d.innerHTML = $("#gate .gate-body").innerHTML;
+    body.appendChild(d);
+    var f = el("div","stack"); f.style.marginTop = "12px";
+    var about = el("p","muted",
+      "Scooby is named after a dog who needed a chart like this one. It's free, it has no account, and it keeps everything on your own device.");
+    f.appendChild(about);
+    var ok = el("button","btn wide","Close"); ok.type = "button"; ok.onclick = close;
+    f.appendChild(ok);
+    body.appendChild(f);
+  });
+}
+
 /* ---------------- setup ---------------- */
 var setupPick = {};
 function renderSetup(){
   var w = $("#setupList"); w.innerHTML = "";
-  S.meds.forEach(function(m){
+  P.meds.forEach(function(m){
     if(m.active === false) return;
     var box = el("div","setup-med");
     var nm = el("div","med-name");
@@ -1542,12 +1923,12 @@ function renderSetup(){
 }
 $("#setupGo").onclick = function(){
   var now = Date.now();
-  S.meds.forEach(function(m){
+  P.meds.forEach(function(m){
     var p = setupPick[m.id];
     if(!p || p.k === "none") return;
-    S.doses.push({id:uid(), medId:m.id, t: p.k === "now" ? now : p.t});
+    P.doses.push({id:uid(), medId:m.id, t: p.k === "now" ? now : p.t});
   });
-  S.setup = true; save(); render();
+  P.setup = true; save(); render();
   window.scrollTo(0,0);
 };
 
@@ -1556,11 +1937,10 @@ function settingsSheet(){
   openSheet(function(body, close){
     sheetHead(body, "Settings");
     var f = el("div","stack");
-    var w1 = el("div");
-    w1.appendChild(el("label", null, "Dog's name"));
-    var nm = el("input"); nm.type = "text"; nm.value = S.dogName;
-    nm.onchange = function(){ S.dogName = nm.value.trim() || "My dog"; save(); render(); };
-    w1.appendChild(nm); f.appendChild(w1);
+    var swi = el("button","btn wide", kindOf(P).icon + "  " + (P.name || "Set up") + " — switch or add");
+    swi.type = "button";
+    swi.onclick = function(){ close(); profileSheet(); };
+    f.appendChild(swi);
 
     var w2 = el("div");
     w2.appendChild(el("label", null, "Who's using this phone"));
@@ -1575,7 +1955,7 @@ function settingsSheet(){
     hand.onclick = function(){ close(); handoffSheet(); };
     f.appendChild(hand);
 
-    var hidden = S.meds.filter(function(m){ return m.active === false; });
+    var hidden = P.meds.filter(function(m){ return m.active === false; });
     if(hidden.length){
       var hw = el("div");
       hw.appendChild(el("label", null, "Removed medications"));
@@ -1595,24 +1975,30 @@ function settingsSheet(){
     exp.onclick = function(){ close(); backupSheet(); };
     f.appendChild(exp);
 
+    var legal = el("button","btn wide","Safety and disclaimer"); legal.type="button";
+    legal.onclick = function(){ close(); legalSheet(); };
+    f.appendChild(legal);
+
     var reset = el("button","btn danger wide","Erase everything and start over"); reset.type="button";
     reset.onclick = function(){
       close();
-      confirmSheet("Erase all data?", "Every logged dose and note will be gone. This can't be undone.", "Erase everything", function(){
-        S = defaults(); setupPick = {}; save(); render();
+      confirmSheet("Erase all data?",
+        "Every profile, every logged dose and every note will be gone. This can't be undone.",
+        "Erase everything", function(){
+        S = migrate(defaults()); setupPick = {}; whoDraft = null; save(); useProfile(); render();
       });
     };
     f.appendChild(reset);
 
     f.appendChild(el("p","muted",
-      "Everything is stored on this phone only — nothing is sent anywhere. If two people are giving meds, each phone keeps its own record, so use Share to send the log back and forth. Add this page to your home screen to keep it one tap away."));
+      "Everything is stored on this device only — nothing is sent anywhere. If two people are giving doses, each phone keeps its own record, so use the hand-off link above. Add this page to your home screen to keep it one tap away."));
     body.appendChild(f);
   });
 }
 
 function summaryText(){
-  var lines = [S.dogName + " — medication log", "As of " + new Date().toLocaleString(), ""];
-  S.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
+  var lines = [P.name + " — medication log", "As of " + new Date().toLocaleString(), ""];
+  P.meds.filter(function(m){ return m.active !== false; }).forEach(function(m){
     var sc = schedule(m), st = statusOf(sc);
     var s = "• " + m.name + " (" + (m.dose||"1 tablet") + "): ";
     if(st === "done") s += sc.why === "supply" ? "finished, none left"
@@ -1649,9 +2035,11 @@ function evKey(text, t){ return text + "@" + Math.round(t/MIN); }
 function buildHandoff(){
   var cut = Date.now() - 21*24*HOUR;
   var payload = {
-    n: S.dogName,
-    d: S.doses.filter(function(x){ return x.t >= cut; }).map(function(x){ return [x.medId, x.t, x.who || ""]; }),
-    e: S.events.filter(function(x){ return x.t >= cut; }).map(function(x){ return [x.t, x.text, x.tone || ""]; })
+    pid: P.id, kind: P.kind,
+    n: P.name,
+    m: P.meds,
+    d: P.doses.filter(function(x){ return x.t >= cut; }).map(function(x){ return [x.medId, x.t, x.who || ""]; }),
+    e: P.events.filter(function(x){ return x.t >= cut; }).map(function(x){ return [x.t, x.text, x.tone || ""]; })
   };
   var base = location.origin + location.pathname;
   return base + "#log=" + b64enc(JSON.stringify(payload));
@@ -1660,12 +2048,30 @@ function mergeHandoff(raw){
   var data;
   try{ data = JSON.parse(b64dec(raw)); }catch(e){ return null; }
   if(!data || !data.d) return null;
+
+  // Land on the profile the link came from, not just whatever is on screen.
+  var target = null, fresh = false;
+  for(var i=0;i<S.profiles.length;i++){
+    if(data.pid && S.profiles[i].id === data.pid){ target = S.profiles[i]; break; }
+  }
+  if(!target && data.n){
+    for(var j=0;j<S.profiles.length;j++){
+      if((S.profiles[j].name || "").toLowerCase() === String(data.n).toLowerCase()){ target = S.profiles[j]; break; }
+    }
+  }
+  if(!target){ target = newProfile(data.n || "Shared", data.kind || "dog"); target.setup = true; fresh = true; }
+
+  var incoming = data.m || [];
+  function knownMed(id){
+    return target.meds.some(function(m){ return m.id === id; })
+        || incoming.some(function(m){ return m.id === id; });
+  }
   var haveD = {}, haveE = {};
-  S.doses.forEach(function(x){ haveD[doseKey(x.medId, x.t)] = 1; });
-  S.events.forEach(function(x){ haveE[evKey(x.text, x.t)] = 1; });
+  target.doses.forEach(function(x){ haveD[doseKey(x.medId, x.t)] = 1; });
+  target.events.forEach(function(x){ haveE[evKey(x.text, x.t)] = 1; });
   var addD = [], addE = [];
   (data.d || []).forEach(function(r){
-    if(!medById(r[0])) return;
+      if(!knownMed(r[0])) return;
     if(haveD[doseKey(r[0], r[1])]) return;
     haveD[doseKey(r[0], r[1])] = 1;
     addD.push({id:uid(), medId:r[0], t:r[1], who:r[2] || undefined});
@@ -1675,7 +2081,7 @@ function mergeHandoff(raw){
     haveE[evKey(r[1], r[0])] = 1;
     addE.push({id:uid(), t:r[0], text:r[1], tone:r[2] || ""});
   });
-  return {addD:addD, addE:addE, name:data.n};
+  return {addD:addD, addE:addE, name:data.n, target:target, fresh:fresh, meds:data.m || []};
 }
 function offerMerge(raw){
   var m = mergeHandoff(raw);
@@ -1684,13 +2090,18 @@ function offerMerge(raw){
   if(!total){ toast("Already up to date"); return; }
   openSheet(function(body, close){
     sheetHead(body, "Update from the other phone",
-      total + (total === 1 ? " entry isn't" : " entries aren't") + " in this phone's log yet.");
+      total + (total === 1 ? " entry isn't" : " entries aren't") + " in "
+      + (m.fresh ? (m.name || "their") + "'s new log" : (m.target.name || "this") + "'s log") + " yet.");
     var f = el("div","stack");
     var list = el("div","log");
+    function nameFor(id){
+      var hit = m.target.meds.concat(m.meds || []).filter(function(x){ return x.id === id; })[0];
+      return hit ? hit.name : "Medication";
+    }
     m.addD.slice(0,8).forEach(function(d){
-      var med = medById(d.medId), row = el("div","row");
+      var med = {name: nameFor(d.medId)}, row = el("div","row");
       row.appendChild(el("div","row-t num", fmtTime(d.t)));
-      row.appendChild(el("div","row-b", (med ? med.name : "Medication") + " given" + (d.who ? " by " + d.who : "")));
+      row.appendChild(el("div","row-b", med.name + " given" + (d.who ? " by " + d.who : "")));
       list.appendChild(row);
     });
     m.addE.slice(0,4).forEach(function(e){
@@ -1703,9 +2114,14 @@ function offerMerge(raw){
     f.appendChild(list);
     var go = el("button","btn primary wide","Add " + (total === 1 ? "it" : "them") + " to this phone"); go.type = "button";
     go.onclick = function(){
-      S.doses = S.doses.concat(m.addD);
-      S.events = S.events.concat(m.addE);
-      save(); render(); close(); toast("Added " + total);
+      if(m.fresh) S.profiles.push(m.target);
+      (m.meds || []).forEach(function(inc){
+        if(!m.target.meds.some(function(x){ return x.id === inc.id; })) m.target.meds.push(normalizeMed(inc));
+      });
+      m.target.doses = m.target.doses.concat(m.addD);
+      m.target.events = m.target.events.concat(m.addE);
+      S.activeId = m.target.id;
+      save(); useProfile(); render(); close(); toast("Added " + total);
     };
     var no = el("button","btn wide","Skip"); no.type = "button"; no.onclick = close;
     f.appendChild(go); f.appendChild(no);
@@ -1720,7 +2136,7 @@ function handoffSheet(){
     var f = el("div","stack");
     var b = el("button","btn primary wide","Send the link"); b.type = "button";
     b.onclick = function(){
-      if(navigator.share) navigator.share({title: S.dogName + "'s log", url:url}).catch(function(){});
+      if(navigator.share) navigator.share({title: P.name + "'s log", url:url}).catch(function(){});
       else { copy(url); toast("Link copied"); }
       close();
     };
@@ -1734,7 +2150,7 @@ function handoffSheet(){
 /* ---------------- vet summary ---------------- */
 function symptomDigest(days){
   var cut = Date.now() - days*24*HOUR, counts = {};
-  S.events.filter(function(e){ return e.t >= cut; }).forEach(function(e){
+  P.events.filter(function(e){ return e.t >= cut; }).forEach(function(e){
     counts[e.text] = (counts[e.text] || 0) + 1;
   });
   return Object.keys(counts).sort(function(a,b){ return counts[b] - counts[a]; })
@@ -1744,7 +2160,7 @@ function symptomDigest(days){
 function shareSheet(){
   var text = summaryText();
   if(navigator.share){
-    navigator.share({title: S.dogName + "'s medication log", text: text}).catch(function(){});
+    navigator.share({title: P.name + "'s medication log", text: text}).catch(function(){});
     return;
   }
   openSheet(function(body, close){
@@ -1768,8 +2184,8 @@ function backupSheet(){
     r.onclick = function(){
       try{
         var parsed = JSON.parse(ta.value);
-        if(!parsed || !parsed.meds) throw new Error("bad");
-        S = migrate(parsed); S.setup = true; save(); render(); close(); toast("Restored");
+        if(!parsed || (!parsed.profiles && !parsed.meds)) throw new Error("bad");
+        S = migrate(parsed); save(); useProfile(); render(); close(); toast("Restored");
       }catch(e){ toast("That text isn't a valid backup"); }
     };
     f.appendChild(ta); f.appendChild(b); f.appendChild(r); body.appendChild(f);
@@ -1802,12 +2218,31 @@ $("#calNext").onclick = function(){ var d = new Date(calMonth); d.setMonth(d.get
 $("#calToday").onclick = function(){ calMonth = monthStart(Date.now()); calPick = startOfDay(Date.now()); renderCal(); };
 $("#btnIcsAll").onclick = function(){ remindersSheet(); };
 
+$("#gateGo").onclick = function(){ S.agreed = true; save(); render(); window.scrollTo(0,0); };
+$("#whoName").oninput = function(){ if(whoDraft) whoDraft.name = this.value; };
+$("#whoGo").onclick = function(){
+  var nm = ($("#whoName").value || "").trim();
+  if(!nm){ $("#whoName").focus(); toast("A name first"); return; }
+  P.name = nm; P.kind = whoDraft ? whoDraft.kind : "dog";
+  P.setup = true;
+  whoDraft = null; save(); render(); window.scrollTo(0,0);
+};
+$("#whoCancel").onclick = function(){
+  if(whoDraft && whoDraft.name){ P.name = whoDraft.name; P.kind = whoDraft.kind; }
+  else if(S.profiles.length > 1){
+    S.profiles = S.profiles.filter(function(x){ return x.id !== P.id; });
+    S.activeId = S.profiles[0].id; useProfile();
+  }
+  whoDraft = null; save(); render();
+};
+$("#whoBtn").onclick = profileSheet;
+$("#btnLegal").onclick = legalSheet;
+
 $("#btnSettings").onclick = settingsSheet;
 $("#btnShare").onclick = shareSheet;
 $("#btnRemind").onclick = remindersSheet;
 $("#btnNote").onclick = noteSheet;
 $("#btnAllLog").onclick = function(){ S.showAll = !S.showAll; save(); renderLog(); };
-$("#dogName").onclick = settingsSheet;
 document.addEventListener("visibilitychange", function(){ if(!document.hidden) tick(); });
 
 render();
@@ -1818,7 +2253,7 @@ function consumeHash(){
   var raw = h.slice(5);
   if(history.replaceState) history.replaceState(null, "", location.pathname + location.search);
   else location.hash = "";
-  if(S.setup) offerMerge(raw);
+  if(P.setup) offerMerge(raw);
   else toast("Finish setting up first, then open that link again");
 }
 window.addEventListener("hashchange", consumeHash);
