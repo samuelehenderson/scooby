@@ -1322,9 +1322,11 @@ function renderChips(){
 }
 function noteSheet(){
   openSheet(function(body, close){
-    sheetHead(body, "Add a note", "Anything you'd want to tell the vet.");
+    sheetHead(body, "Add a note", "Anything you'd want to tell the " + proWord() + ".");
     var f = el("div","stack");
-    var ta = el("textarea"); ta.placeholder = "Threw up around 6, small clot. Ate half his dinner.";
+    var ta = el("textarea");
+    ta.placeholder = isPet() ? "Threw up around 6, small clot. Ate half his dinner."
+                             : "Rough night, took the 2am dose late. Kept breakfast down.";
     var go = el("button","btn primary wide","Save note"); go.type="button";
     go.onclick = function(){ var v = ta.value.trim(); if(!v) return; close(); addEvent(v, ""); };
     f.appendChild(ta); f.appendChild(go); body.appendChild(f);
@@ -1547,6 +1549,7 @@ function buildIcs(days){
   lines.push("END:VCALENDAR");
   return {text:lines.join("\r\n"), count:plan.length};
 }
+var EMBEDDED = (function(){ try{ return window.self !== window.top; }catch(e){ return true; } })();
 function icsLink(node, days){
   var built = buildIcs(days);
   if(!built){ node.classList.add("hidden"); return null; }
@@ -1567,19 +1570,31 @@ function remindersSheet(){
     box.appendChild(p0);
     f.appendChild(box);
 
-    var a = el("a","btn primary wide");
-    var week = icsLink(a, 7);
-    a.textContent = week ? "Add this week — " + week.count + " alarms" : "Nothing left to schedule";
-    if(!week){ a.classList.remove("primary"); a.classList.remove("hidden"); a.removeAttribute("href"); }
-    f.appendChild(a);
+    if(EMBEDDED){
+      var warn = el("div","panel");
+      warn.style.background = "var(--warn-soft)"; warn.style.border = "0";
+      var wt = el("div", null, "Not available in this preview");
+      wt.style.fontWeight = "640"; wt.style.color = "var(--warn)";
+      warn.appendChild(wt);
+      var wp = el("p","muted","Handing a calendar file to your phone only works when Scooby is opened at its own web address, or added to your home screen. Open it there and this button will work.");
+      wp.style.marginTop = "6px";
+      warn.appendChild(wp);
+      f.appendChild(warn);
+    } else {
+      var a = el("a","btn primary wide");
+      var week = icsLink(a, 7);
+      a.textContent = week ? "Add this week — " + week.count + " alarms" : "Nothing left to schedule";
+      if(!week){ a.classList.remove("primary"); a.classList.remove("hidden"); a.removeAttribute("href"); }
+      f.appendChild(a);
 
-    var a2 = el("a","btn wide");
-    var all = icsLink(a2, 30);
-    if(all && all.count > (week ? week.count : 0)){
-      a2.textContent = "Or the next 30 days — " + all.count + " alarms";
-      f.appendChild(a2);
+      var a2 = el("a","btn wide");
+      var all = icsLink(a2, 30);
+      if(all && all.count > (week ? week.count : 0)){
+        a2.textContent = "Or the next 30 days — " + all.count + " alarms";
+        f.appendChild(a2);
+      }
+      f.appendChild(el("p","muted","Tap one, then pick which calendar to add it to. A taper's step-downs are built in — the gaps widen on their own. Give a dose early or late and the later times shift with it, so come back and add the next stretch after a change."));
     }
-    f.appendChild(el("p","muted","Tap one, then pick which calendar to add it to. The prednisone step-downs are built in — the gaps widen to once a day, then every other day, on their own. Give a dose early or late and the later times shift with it, so come back and add the next stretch after a change."));
 
     f.appendChild(el("div","sec-gap"));
 
@@ -2177,7 +2192,7 @@ function shareSheet(){
     return;
   }
   openSheet(function(body, close){
-    sheetHead(body, "Share summary", "Copy this and send it to whoever needs it.");
+    sheetHead(body, "Share summary", "Copy this and send it to your " + proWord() + ".");
     var ta = el("textarea"); ta.value = text; ta.style.minHeight = "220px"; ta.readOnly = true;
     var b = el("button","btn primary wide","Copy to clipboard"); b.type="button";
     b.onclick = function(){
