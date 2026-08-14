@@ -13,9 +13,13 @@ It's named after a dog who needed a chart like this one.
 This is a notebook, not a medical device. It records what you tell it and counts
 the hours — it does **not** check doses, interactions, allergies, or whether a
 medication is right for anyone. If the app and the label disagree, the label is
-right. Reminders can fail, so don't rely on it alone. The app opens with the
-full disclaimer and won't go further until it's acknowledged; it's available
-again any time under *Safety and disclaimer*.
+right. Reminders can fail, so don't rely on it alone.
+
+The full text stays out of the way. It's summarised in two lines on the screen
+where a profile is created, where continuing accepts it, and after that it lives
+behind a quiet **Legal & safety** link at the foot of the page (also in
+Settings). Anyone upgrading from an older version acknowledges it once, in a
+sheet, without losing access to their log.
 
 ## Who it tracks
 

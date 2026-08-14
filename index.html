@@ -104,6 +104,12 @@ header{
 .gate-body ul{margin:0 0 10px; padding-left:18px; display:flex; flex-direction:column; gap:8px}
 .gate-body li{font-size:13.5px; line-height:1.45; color:var(--ink-2)}
 
+.finePrint{font-size:12px; line-height:1.5; color:var(--ink-3); margin:12px 4px 0; text-align:center}
+.inlink{font:inherit; color:var(--accent); text-decoration:underline; text-underline-offset:2px; padding:0}
+.foot{margin:26px 0 0; text-align:center}
+.foot button{font-size:12px; color:var(--ink-3); padding:8px 10px; text-decoration:underline; text-underline-offset:3px}
+.foot button:active{color:var(--ink-2)}
+
 /* ---------- kind picker ---------- */
 .kinds{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
 .kindbtn{
@@ -372,19 +378,8 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
   </div>
 </header>
 
-<main class="wrap">
-  <!-- disclaimer gate -->
-  <section id="gate" class="hidden">
-    <svg class="gate-mark" viewBox="0 0 32 32" role="img" aria-label="Paw print">
-      <g fill="currentColor">
-        <ellipse cx="11" cy="10.6" rx="2.9" ry="3.4"/><ellipse cx="21" cy="10.6" rx="2.9" ry="3.4"/>
-        <ellipse cx="5.9" cy="17" rx="2.6" ry="3"/><ellipse cx="26.1" cy="17" rx="2.6" ry="3"/>
-        <path d="M16 14.6c4.1 0 7.4 3.6 7.4 6.9 0 2.6-2 4.2-4.5 4.2-1.2 0-2-.5-2.9-.5s-1.7.5-2.9.5c-2.5 0-4.5-1.6-4.5-4.2 0-3.3 3.3-6.9 7.4-6.9z"/>
-      </g>
-    </svg>
-    <h2 class="gate-h">Scooby</h2>
-    <p class="gate-sub">A plain medication tracker — for pets and for people.</p>
-    <div class="panel gate-body">
+<div id="legalSource" hidden>
+  <div class="gate-body">
       <h3>Read this first</h3>
       <p><b>This app is a notebook, not a medical device.</b> It records what you tell it and counts the hours. That's all it does.</p>
       <ul>
@@ -398,11 +393,22 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
       </ul>
       <p class="muted">Everything you enter stays on this device.</p>
     </div>
-    <button class="btn primary wide" id="gateGo" style="margin-top:14px">I understand — continue</button>
-  </section>
+</div>
 
+<main class="wrap">
   <!-- who is this for -->
   <section id="whoami" class="hidden">
+    <div id="brand" class="hidden">
+      <svg class="gate-mark" viewBox="0 0 32 32" role="img" aria-label="Paw print">
+        <g fill="currentColor">
+          <ellipse cx="11" cy="10.6" rx="2.9" ry="3.4"/><ellipse cx="21" cy="10.6" rx="2.9" ry="3.4"/>
+          <ellipse cx="5.9" cy="17" rx="2.6" ry="3"/><ellipse cx="26.1" cy="17" rx="2.6" ry="3"/>
+          <path d="M16 14.6c4.1 0 7.4 3.6 7.4 6.9 0 2.6-2 4.2-4.5 4.2-1.2 0-2-.5-2.9-.5s-1.7.5-2.9.5c-2.5 0-4.5-1.6-4.5-4.2 0-3.3 3.3-6.9 7.4-6.9z"/>
+        </g>
+      </svg>
+      <h2 class="gate-h">Scooby</h2>
+      <p class="gate-sub">A plain medication tracker — for pets and for people.</p>
+    </div>
     <div class="sec"><h2 id="whoTitle">Who is this for?</h2></div>
     <div class="panel">
       <label for="whoName">Name</label>
@@ -412,6 +418,10 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
     </div>
     <button class="btn primary wide" id="whoGo" style="margin-top:14px">Continue</button>
     <button class="btn wide hidden" id="whoCancel" style="margin-top:8px">Cancel</button>
+    <p class="finePrint" id="whoFine">
+      Scooby is a notebook, not a medical device — it doesn't check doses or interactions, and it isn't medical
+      or veterinary advice. By continuing you accept the <button type="button" class="inlink" id="whoLegal">full disclaimer</button>.
+    </p>
   </section>
 
   <!-- first run -->
@@ -435,8 +445,7 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
     <div class="sec"><h2>History</h2><button class="link" id="btnAllLog">Show all</button></div>
     <div class="log" id="log"></div>
 
-    <p class="muted" id="footNote" style="margin:18px 4px 0"></p>
-    <button class="link" id="btnLegal" style="margin:10px 2px 0">Safety and disclaimer</button>
+
   </section>
 
   <!-- calendar -->
@@ -469,6 +478,9 @@ dialog::backdrop{background:rgba(6,14,12,.45); backdrop-filter:blur(2px)}
       Adds a real calendar event with an alarm for every remaining dose, so the phone rings whether or not this app is open.
     </p>
   </section>
+  <footer class="foot hidden" id="foot">
+    <button type="button" id="btnLegal">Legal &amp; safety</button>
+  </footer>
 </main>
 
 <div id="toast" role="status" aria-live="polite"><span id="toastMsg"></span><button id="toastAct" type="button">Undo</button></div>
@@ -852,7 +864,7 @@ function renderToday(){
 
 /* ---------------- render ---------------- */
 function showOnly(id){
-  ["gate","whoami","setup","app","calview"].forEach(function(k){
+  ["whoami","setup","app","calview"].forEach(function(k){
     $("#" + k).classList.toggle("hidden", k !== id);
   });
 }
@@ -862,9 +874,8 @@ function render(){
   $("#whoIcon").textContent = kindOf(P).icon;
   document.title = P.name ? P.name + " — Scooby" : "Scooby";
 
-  var chrome = S.agreed && !!P.name;
-  document.querySelector("header").classList.toggle("hidden", !chrome);
-  if(!S.agreed){ showOnly("gate"); $("#tabs").classList.add("hidden"); return; }
+  document.querySelector("header").classList.toggle("hidden", !P.name);
+  $("#foot").classList.toggle("hidden", !P.name);
   if(!P.name){ showOnly("whoami"); $("#tabs").classList.add("hidden"); renderWho(); return; }
 
   if(!P.setup && P.meds.length){
@@ -878,8 +889,6 @@ function render(){
   var tabs = document.querySelectorAll("#tabs button");
   for(var i=0;i<tabs.length;i++) tabs[i].setAttribute("aria-selected", tabs[i].dataset.view === S.view ? "true" : "false");
   $("#howTitle").textContent = "How they're doing";
-  $("#footNote").textContent = "This records what was given and when — it isn't medical advice. "
-    + "Follow the label and your " + proWord() + "'s instructions, and call them about anything new or worse.";
   if(cal) renderCal();
   else { renderToday(); renderCards(); renderChips(); renderLog(); }
   tick();
@@ -1714,7 +1723,9 @@ var whoDraft = null;   // {id?, name, kind} while the who-screen is open
 
 function renderWho(){
   if(!whoDraft) whoDraft = {id:P.id, name:P.name || "", kind:P.kind || "dog"};
-  var editing = S.profiles.length > 1 || !!P.name;
+  var firstEver = !S.agreed && S.profiles.length === 1;
+  $("#brand").classList.toggle("hidden", !firstEver);
+  $("#whoFine").classList.toggle("hidden", S.agreed);
   $("#whoTitle").textContent = whoDraft.id && P.name ? "Edit " + P.name : "Who is this for?";
   $("#whoCancel").classList.toggle("hidden", !P.name && S.profiles.length < 2);
   var nm = $("#whoName");
@@ -1863,17 +1874,19 @@ function addMedSheet(){
 }
 
 /* ---------------- legal ---------------- */
-function legalSheet(){
+function legalSheet(needsAccept){
+  needsAccept = needsAccept === true;
   openSheet(function(body, close){
-    sheetHead(body, "Safety and disclaimer");
+    sheetHead(body, "Legal & safety");
     var d = el("div","gate-body");
-    d.innerHTML = $("#gate .gate-body").innerHTML;
+    d.innerHTML = $("#legalSource").innerHTML;
     body.appendChild(d);
     var f = el("div","stack"); f.style.marginTop = "12px";
-    var about = el("p","muted",
-      "Scooby is named after a dog who needed a chart like this one. It's free, it has no account, and it keeps everything on your own device.");
-    f.appendChild(about);
-    var ok = el("button","btn wide","Close"); ok.type = "button"; ok.onclick = close;
+    f.appendChild(el("p","muted",
+      "Scooby is named after a dog who needed a chart like this one. It's free, it has no account, and it keeps everything on your own device."));
+    var ok = el("button","btn wide" + (needsAccept ? " primary" : ""), needsAccept ? "I understand" : "Close");
+    ok.type = "button";
+    ok.onclick = function(){ if(needsAccept){ S.agreed = true; save(); } close(); };
     f.appendChild(ok);
     body.appendChild(f);
   });
@@ -2218,13 +2231,13 @@ $("#calNext").onclick = function(){ var d = new Date(calMonth); d.setMonth(d.get
 $("#calToday").onclick = function(){ calMonth = monthStart(Date.now()); calPick = startOfDay(Date.now()); renderCal(); };
 $("#btnIcsAll").onclick = function(){ remindersSheet(); };
 
-$("#gateGo").onclick = function(){ S.agreed = true; save(); render(); window.scrollTo(0,0); };
 $("#whoName").oninput = function(){ if(whoDraft) whoDraft.name = this.value; };
 $("#whoGo").onclick = function(){
   var nm = ($("#whoName").value || "").trim();
   if(!nm){ $("#whoName").focus(); toast("A name first"); return; }
   P.name = nm; P.kind = whoDraft ? whoDraft.kind : "dog";
   P.setup = true;
+  S.agreed = true;
   whoDraft = null; save(); render(); window.scrollTo(0,0);
 };
 $("#whoCancel").onclick = function(){
@@ -2236,7 +2249,8 @@ $("#whoCancel").onclick = function(){
   whoDraft = null; save(); render();
 };
 $("#whoBtn").onclick = profileSheet;
-$("#btnLegal").onclick = legalSheet;
+$("#btnLegal").onclick = function(){ legalSheet(false); };
+$("#whoLegal").onclick = function(){ legalSheet(false); };
 
 $("#btnSettings").onclick = settingsSheet;
 $("#btnShare").onclick = shareSheet;
@@ -2247,6 +2261,10 @@ document.addEventListener("visibilitychange", function(){ if(!document.hidden) t
 
 render();
 
+function acknowledgeOnce(){
+  if(S.agreed || !P.name) return;
+  legalSheet(true);
+}
 function consumeHash(){
   var h = location.hash || "";
   if(h.indexOf("#log=") !== 0) return;
@@ -2258,6 +2276,7 @@ function consumeHash(){
 }
 window.addEventListener("hashchange", consumeHash);
 consumeHash();
+if(!location.hash) acknowledgeOnce();
 
 if("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
   window.addEventListener("load", function(){
