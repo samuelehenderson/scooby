@@ -110,5 +110,12 @@ It then opens full-screen like an app and works with no signal.
 ## Hosting it
 
 Static — `index.html` plus icons, a manifest, and a service worker for offline
-use. Any static host works. For GitHub Pages: **Settings → Pages → Source:
-Deploy from a branch**, pick `main` and the root folder.
+use. There is no build step: any static host serves the repository root as-is.
+
+It's deployed on Vercel from `main`, so every push to `main` ships. The service
+worker fetches the page network-first, so a new deploy appears on the next open
+rather than the one after; icons and the manifest stay cache-first, and the app
+still works with no signal.
+
+GitHub Pages works too, if you ever want it: **Settings → Pages → Source:
+Deploy from a branch**, `main`, root folder.
